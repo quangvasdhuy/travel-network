@@ -10,6 +10,8 @@ import destinationRoutes from './routes/destinations.js';
 import tripRoutes from './routes/trips.js';
 import connectionRoutes from './routes/connections.js';
 import postRoutes from './routes/posts.js';
+import searchRoutes from './routes/search.js';
+import discoveryRoutes from './routes/discovery.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -37,6 +39,8 @@ app.use('/api/destinations', destinationRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/discovery', discoveryRoutes);
 
 // Serve static files (uploaded images)
 app.use('/uploads', express.static('uploads'));
