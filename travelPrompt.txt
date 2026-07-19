@@ -1,0 +1,22 @@
+I want to build a goal planning app.
+core idea: social network for tourists using Couchbase database. 
+
+IMPORTANT:
+Before writting any code:
+1. Ask up to 10 clarifying questions about:
+- product requirements (user flow, interactions)
+- timeline logic (how time is calculated)
+- data structure
+- UI/UX expectations
+- technical constraints
+2. Do not assume:
+- frontend framework
+- styling library
+- backend or storage approach
+3. After asking questions:
+- propose a step-by-step implementation plan
+- explain key design decisions briefly
+4. Wait for my confirmation before writing any code
+
+http://localhost:8091 
+
