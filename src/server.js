@@ -8,6 +8,8 @@ import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import destinationRoutes from './routes/destinations.js';
 import tripRoutes from './routes/trips.js';
+import connectionRoutes from './routes/connections.js';
+import postRoutes from './routes/posts.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -33,6 +35,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/destinations', destinationRoutes);
 app.use('/api/trips', tripRoutes);
+app.use('/api/connections', connectionRoutes);
+app.use('/api/posts', postRoutes);
 
 // Serve static files (uploaded images)
 app.use('/uploads', express.static('uploads'));
