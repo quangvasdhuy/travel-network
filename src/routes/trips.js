@@ -16,20 +16,13 @@ const router = express.Router();
 const tripSchemas = {
   create: {
     body: Joi.object({
-      title: Joi.string().min(3).max(100).required(),
-      description: Joi.string().max(2000).optional(),
-      destinations: Joi.array().items(
-        Joi.object({
-          destinationId: Joi.string().required(),
-          name: Joi.string().required(),
-          country: Joi.string().optional(),
-          arrivalDate: Joi.date().iso().optional(),
-          departureDate: Joi.date().iso().optional(),
-        })
-      ).min(1).required(),
+      title: Joi.string().min(3).max(100).optional(), // Make title optional if name is used
+      name: Joi.string().min(3).max(100).optional(), // Frontend uses 'name'
+      description: Joi.string().max(2000).allow('').optional(),
+      destinations: Joi.array().items(Joi.string()).optional(), // Array of destination IDs (no min constraint)
       startDate: Joi.date().iso().required(),
       endDate: Joi.date().iso().required(),
-      status: Joi.string().valid('planning', 'active', 'completed', 'cancelled').default('planning'),
+      status: Joi.string().valid('planning', 'upcoming', 'ongoing', 'active', 'completed', 'cancelled').default('planning'),
       visibility: Joi.string().valid('public', 'connections', 'private').default('public'),
       itinerary: Joi.array().items(
         Joi.object({
@@ -41,12 +34,13 @@ const tripSchemas = {
       ).optional(),
       budget: Joi.object({
         total: Joi.number().min(0).optional(),
+        estimated: Joi.number().min(0).optional(),
         currency: Joi.string().length(3).uppercase().default('USD'),
         breakdown: Joi.object().optional(),
       }).optional(),
       participants: Joi.array().optional(),
       tags: Joi.array().items(Joi.string()).optional(),
-    }),
+    }).or('title', 'name'), // Require either title or name
   },
 
   update: {
@@ -308,3 +302,46 @@ router.get('/destination/:destinationId', asyncHandler(async (req, res) => {
 }));
 
 export default router;
+
+// Force nodemon reload - updated validation schema for destinations
+
+/**
+ * Update trip
+ * 
+ * @route PATCH /api/trips/:id
+ * @auth Required
+ * @param {string} id - Trip ID
+ * @body {Object} Trip updates
+ * @returns {Object} Updated trip
+ */
+router.patch('/:id', authenticate, validate(tripSchemas.update), asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+
+  const trip = await tripService.updateTrip(id, req.user.id, updates);
+
+  res.status(200).json({
+    success: true,
+    data: { trip },
+    message: 'Trip updated successfully',
+  });
+}));
+
+/**
+ * Delete trip
+ * 
+ * @route DELETE /api/trips/:id
+ * @auth Required
+ * @param {string} id - Trip ID
+ * @returns {Object} Success message
+ */
+router.delete('/:id', authenticate, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  await tripService.deleteTrip(id, req.user.id);
+
+  res.status(200).json({
+    success: true,
+    message: 'Trip deleted successfully',
+  });
+}));

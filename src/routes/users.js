@@ -130,24 +130,6 @@ router.delete('/me', authenticate, asyncHandler(async (req, res) => {
 }));
 
 /**
- * Get user profile by ID
- * 
- * @route GET /api/users/:id
- * @auth Optional
- * @returns {Object} Public user profile
- */
-router.get('/:id', asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  const profile = await userService.getUserProfile(id, false);
-
-  res.status(200).json({
-    success: true,
-    data: { user: profile },
-  });
-}));
-
-/**
  * Get user profile by username
  * 
  * @route GET /api/users/username/:username
@@ -217,6 +199,24 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: stats,
+  });
+}));
+
+/**
+ * Get user profile by ID
+ * 
+ * @route GET /api/users/:id
+ * @auth Optional
+ * @returns {Object} Public user profile
+ */
+router.get('/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const profile = await userService.getUserProfile(id, false);
+
+  res.status(200).json({
+    success: true,
+    data: { user: profile },
   });
 }));
 

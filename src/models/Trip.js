@@ -28,7 +28,8 @@ export class Trip {
       visibility: data.visibility || 'public', // 'public', 'connections', 'private'
       itinerary: data.itinerary || [], // Array of { day, date, activities: [], notes: '' }
       budget: {
-        total: data.budget?.total || null,
+        total: data.budget?.total || data.budget?.estimated || null,
+        estimated: data.budget?.estimated || data.budget?.total || null,
         currency: data.budget?.currency || 'USD',
         breakdown: data.budget?.breakdown || {}, // { accommodation: 0, transport: 0, food: 0, activities: 0 }
       },
@@ -82,9 +83,8 @@ export class Trip {
       errors.push('Start date must be before end date');
     }
 
-    if (!data.destinations || data.destinations.length === 0) {
-      errors.push('At least one destination is required');
-    }
+    // Destinations can be optional (allow creating trip without destinations)
+    // No longer enforce "At least one destination is required"
 
     return {
       valid: errors.length === 0,

@@ -19,18 +19,22 @@ export const validate = (schema) => {
     };
 
     const toValidate = {};
+    const schemaKeys = {};
     
     if (schema.body) {
       toValidate.body = req.body;
+      schemaKeys.body = schema.body;
     }
     if (schema.params) {
       toValidate.params = req.params;
+      schemaKeys.params = schema.params;
     }
     if (schema.query) {
       toValidate.query = req.query;
+      schemaKeys.query = schema.query;
     }
 
-    const fullSchema = Joi.object(toValidate);
+    const fullSchema = Joi.object(schemaKeys).unknown(true);
     const { error, value } = fullSchema.validate(toValidate, validationOptions);
 
     if (error) {

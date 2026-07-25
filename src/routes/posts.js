@@ -129,22 +129,32 @@ router.post('/', authenticate, upload.array('media', 5), asyncHandler(async (req
 }));
 
 /**
- * Get post by ID
+ * Get feed for current user
  * 
- * @route GET /api/posts/:id
- * @auth Optional
- * @param {string} id - Post ID
- * @returns {Object} Post details
+ * @route GET /api/posts/feed
+ * @auth Required
+ * @query {number} [limit=20] - Results limit
+ * @query {number} [offset=0] - Results offset
+ * @returns {Object} Personalized feed
  */
-router.get('/:id', asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const requestingUserId = req.user?.id || null;
+router.get('/feed', authenticate, asyncHandler(async (req, res) => {
+  const { limit = 20, offset = 0 } = req.query;
 
-  const post = await postService.getPostById(id, requestingUserId);
+  const posts = await postService.getFeedForUser(req.user.id, {
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+  });
 
   res.status(200).json({
     success: true,
-    data: { post },
+    data: {
+      posts,
+      pagination: {
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        count: posts.length,
+      },
+    },
   });
 }));
 
@@ -213,32 +223,22 @@ router.get('/destination/:destinationId', asyncHandler(async (req, res) => {
 }));
 
 /**
- * Get feed for current user
+ * Get post by ID
  * 
- * @route GET /api/posts/feed
- * @auth Required
- * @query {number} [limit=20] - Results limit
- * @query {number} [offset=0] - Results offset
- * @returns {Object} Personalized feed
+ * @route GET /api/posts/:id
+ * @auth Optional
+ * @param {string} id - Post ID
+ * @returns {Object} Post details
  */
-router.get('/feed', authenticate, asyncHandler(async (req, res) => {
-  const { limit = 20, offset = 0 } = req.query;
+router.get('/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const requestingUserId = req.user?.id || null;
 
-  const posts = await postService.getFeedForUser(req.user.id, {
-    limit: parseInt(limit),
-    offset: parseInt(offset),
-  });
+  const post = await postService.getPostById(id, requestingUserId);
 
   res.status(200).json({
     success: true,
-    data: {
-      posts,
-      pagination: {
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        count: posts.length,
-      },
-    },
+    data: { post },
   });
 }));
 

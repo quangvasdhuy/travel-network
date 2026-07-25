@@ -58,15 +58,15 @@ const searchSchemas = {
  * @returns {Object} Search results grouped by type
  */
 router.get('/', validate(searchSchemas.unified), asyncHandler(async (req, res) => {
-  const { q: query, types, limit, offset } = req.query;
+  const { q: query, types, limit = 10, offset = 0 } = req.query;
 
   // Parse types if provided
   const typesArray = types ? types.split(',') : ['users', 'destinations', 'posts'];
 
   const results = await searchService.unifiedSearch(query, {
     types: typesArray,
-    limit: parseInt(limit),
-    offset: parseInt(offset),
+    limit: parseInt(limit) || 10,
+    offset: parseInt(offset) || 0,
   });
 
   res.status(200).json({

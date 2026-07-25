@@ -75,7 +75,7 @@ const destinationSchemas = {
 
   searchQuery: {
     query: Joi.object({
-      q: Joi.string().min(2).required(),
+      q: Joi.string().allow('').default(''),
       limit: Joi.number().integer().min(1).max(100).default(20),
     }),
   },

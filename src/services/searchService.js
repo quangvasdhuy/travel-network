@@ -26,19 +26,22 @@ export async function unifiedSearch(query, options = {}) {
     total: 0,
   };
 
+  // Parse limit to ensure it's a number
+  const parsedLimit = parseInt(limit) || 10;
+
   // Search users
   if (types.includes('users')) {
-    results.users = await searchUsers(query, limit);
+    results.users = await searchUsers(query, parsedLimit);
   }
 
   // Search destinations
   if (types.includes('destinations')) {
-    results.destinations = await searchDestinations(query, limit);
+    results.destinations = await searchDestinations(query, parsedLimit);
   }
 
   // Search posts
   if (types.includes('posts')) {
-    results.posts = await searchPosts(query, limit);
+    results.posts = await searchPosts(query, parsedLimit);
   }
 
   results.total = results.users.length + results.destinations.length + results.posts.length;
@@ -58,7 +61,7 @@ async function searchUsers(query, limit = 10) {
 
   const statement = `
     SELECT u.id, u.username, u.profile, u.interests, u.stats
-    FROM ${bucketName} u
+    FROM \`${bucketName}\` u
     WHERE u.type = 'user'
       AND u.status = 'active'
       AND (
@@ -107,7 +110,7 @@ async function searchDestinations(query, limit = 10) {
   const statement = `
     SELECT META(d).id, d.id as destId, d.name, d.country, d.countryCode, 
            d.slug, d.summary, d.categories, d.tags, d.stats, d.images
-    FROM ${bucketName} d
+    FROM \`${bucketName}\` d
     WHERE d.type = 'destination'
       AND (
         LOWER(d.name) LIKE $query
@@ -160,7 +163,7 @@ async function searchPosts(query, limit = 10) {
   const statement = `
     SELECT META(p).id, p.id as postId, p.authorId, p.authorUsername, p.authorPhoto,
            p.postType, p.content, p.location, p.tags, p.stats, p.createdAt
-    FROM ${bucketName} p
+    FROM \`${bucketName}\` p
     WHERE p.type = 'post'
       AND p.visibility = 'public'
       AND (

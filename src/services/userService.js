@@ -84,55 +84,78 @@ export async function updateUserProfile(userId, updates) {
   const usersBucket = dbConnection.getBucket('users');
   const collection = usersBucket.defaultCollection;
 
-  // Define allowed fields to update
-  const allowedUpdates = [
-    'profile.firstName',
-    'profile.lastName',
-    'profile.bio',
-    'profile.location.city',
-    'profile.location.country',
-    'profile.dateOfBirth',
-    'interests',
-    'preferences.travelStyle',
-    'preferences.languages',
-    'preferences.privacySettings.profileVisibility',
-    'preferences.privacySettings.tripVisibility',
-    'preferences.privacySettings.showEmail',
-  ];
-
-  // Build mutation operations
-  const mutations = [];
-
-  for (const [key, value] of Object.entries(updates)) {
-    if (allowedUpdates.includes(key)) {
-      mutations.push({
-        opcode: 'dict_upsert',
-        path: key,
-        value: value,
-      });
-    }
-  }
-
-  if (mutations.length === 0) {
-    throw {
-      statusCode: 400,
-      message: 'No valid fields to update',
-    };
-  }
-
-  // Add updated timestamp
-  mutations.push({
-    opcode: 'dict_upsert',
-    path: 'updatedAt',
-    value: new Date().toISOString(),
-  });
-
   try {
-    await collection.mutateIn(User.getKey(userId), mutations);
-
-    // Get updated user
+    // Get current user document
     const result = await collection.get(User.getKey(userId));
-    const { passwordHash, verification, ...profileData } = result.content;
+    const user = result.content;
+
+    // Define allowed fields to update
+    const allowedUpdates = {
+      'profile.firstName': (val) => { user.profile.firstName = val; },
+      'profile.lastName': (val) => { user.profile.lastName = val; },
+      'profile.bio': (val) => { user.profile.bio = val; },
+      'profile.location.city': (val) => { 
+        if (!user.profile.location) user.profile.location = {};
+        user.profile.location.city = val; 
+      },
+      'profile.location.country': (val) => { 
+        if (!user.profile.location) user.profile.location = {};
+        user.profile.location.country = val; 
+      },
+      'profile.dateOfBirth': (val) => { user.profile.dateOfBirth = val; },
+      'interests': (val) => { user.interests = val; },
+      'preferences.travelStyle': (val) => {
+        if (!user.preferences) user.preferences = {};
+        user.preferences.travelStyle = val;
+      },
+      'preferences.languages': (val) => {
+        if (!user.preferences) user.preferences = {};
+        user.preferences.languages = val;
+      },
+    };
+
+    // Apply updates
+    let hasUpdates = false;
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedUpdates[key]) {
+        allowedUpdates[key](value);
+        hasUpdates = true;
+      } else if (key === 'profile' && typeof value === 'object') {
+        // Handle nested profile object
+        for (const [subKey, subValue] of Object.entries(value)) {
+          const fullKey = `profile.${subKey}`;
+          if (allowedUpdates[fullKey]) {
+            allowedUpdates[fullKey](subValue);
+            hasUpdates = true;
+          } else if (subKey === 'location' && typeof subValue === 'object') {
+            // Handle nested location object
+            for (const [locKey, locValue] of Object.entries(subValue)) {
+              const locFullKey = `profile.location.${locKey}`;
+              if (allowedUpdates[locFullKey]) {
+                allowedUpdates[locFullKey](locValue);
+                hasUpdates = true;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!hasUpdates) {
+      throw {
+        statusCode: 400,
+        message: 'No valid fields to update',
+      };
+    }
+
+    // Update timestamp
+    user.updatedAt = new Date().toISOString();
+
+    // Save updated document
+    await collection.upsert(User.getKey(userId), user);
+
+    // Return profile without sensitive data
+    const { passwordHash, verification, ...profileData } = user;
     
     return profileData;
   } catch (error) {
@@ -142,7 +165,14 @@ export async function updateUserProfile(userId, updates) {
         message: 'User not found',
       };
     }
-    throw error;
+    if (error.statusCode) {
+      throw error;
+    }
+    console.error('Error updating user profile:', error);
+    throw {
+      statusCode: 500,
+      message: 'Failed to update profile',
+    };
   }
 }
 
@@ -157,22 +187,19 @@ export async function updateProfilePhoto(userId, photoPath) {
   const collection = usersBucket.defaultCollection;
 
   try {
-    await collection.mutateIn(User.getKey(userId), [
-      {
-        opcode: 'dict_upsert',
-        path: 'profile.profilePhoto',
-        value: photoPath,
-      },
-      {
-        opcode: 'dict_upsert',
-        path: 'updatedAt',
-        value: new Date().toISOString(),
-      },
-    ]);
-
-    // Get updated user
+    // Get current user document
     const result = await collection.get(User.getKey(userId));
-    const { passwordHash, verification, ...profileData } = result.content;
+    const user = result.content;
+
+    // Update profile photo and timestamp
+    user.profile.profilePhoto = photoPath;
+    user.updatedAt = new Date().toISOString();
+
+    // Save updated document
+    await collection.upsert(User.getKey(userId), user);
+
+    // Return updated profile without sensitive data
+    const { passwordHash, verification, ...profileData } = user;
     
     return profileData;
   } catch (error) {
@@ -182,7 +209,11 @@ export async function updateProfilePhoto(userId, photoPath) {
         message: 'User not found',
       };
     }
-    throw error;
+    console.error('Error updating profile photo:', error);
+    throw {
+      statusCode: 500,
+      message: 'Failed to update profile photo',
+    };
   }
 }
 

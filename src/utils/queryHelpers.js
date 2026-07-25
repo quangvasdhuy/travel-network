@@ -88,14 +88,22 @@ export const TripQueries = {
    */
   async getByUserId(userId, limit = 20, offset = 0) {
     const bucketName = process.env.BUCKET_TRIPS || 'travel_trips';
-    const statement = `
-      SELECT META().id, t.*
-      FROM ${bucketName} t
-      WHERE t.type = 'trip' AND t.userId = $userId
-      ORDER BY t.startDate DESC
-      LIMIT $limit OFFSET $offset
-    `;
-    return await executeQuery(statement, { parameters: { userId, limit, offset } });
+    
+    try {
+      const statement = `
+        SELECT META(t).id, t.*
+        FROM \`${bucketName}\` t
+        WHERE t.type = 'trip' AND t.userId = $userId
+        ORDER BY t.startDate DESC
+        LIMIT $limit OFFSET $offset
+      `;
+      
+      return await executeQuery(statement, { parameters: { userId, limit, offset } });
+    } catch (error) {
+      console.error('Error in getByUserId query:', error.message);
+      // Return empty array if bucket doesn't exist or no data
+      return [];
+    }
   },
 
   /**
@@ -103,17 +111,23 @@ export const TripQueries = {
    */
   async getByDestination(destinationId, limit = 20, offset = 0) {
     const bucketName = process.env.BUCKET_TRIPS || 'travel_trips';
-    const statement = `
-      SELECT META().id, t.*
-      FROM ${bucketName} t
-      WHERE t.type = 'trip'
-        AND ANY d IN t.destinations SATISFIES d.destinationId = $destinationId END
-      ORDER BY t.startDate DESC
-      LIMIT $limit OFFSET $offset
-    `;
-    return await executeQuery(statement, {
-      parameters: { destinationId, limit, offset },
-    });
+    
+    try {
+      const statement = `
+        SELECT META().id, t.*
+        FROM \`${bucketName}\` t
+        WHERE t.type = 'trip'
+          AND ANY d IN t.destinations SATISFIES d.destinationId = $destinationId END
+        ORDER BY t.startDate DESC
+        LIMIT $limit OFFSET $offset
+      `;
+      return await executeQuery(statement, {
+        parameters: { destinationId, limit, offset },
+      });
+    } catch (error) {
+      console.error('Error in getByDestination query:', error.message);
+      return [];
+    }
   },
 
   /**
@@ -121,19 +135,26 @@ export const TripQueries = {
    */
   async getUpcomingTrips(startDate, endDate, limit = 50) {
     const bucketName = process.env.BUCKET_TRIPS || 'travel_trips';
-    const statement = `
-      SELECT META().id, t.*, u.username, u.profile.profilePhoto
-      FROM ${bucketName} t
-      JOIN ${process.env.BUCKET_USERS || 'travel_users'} u
-        ON KEYS ('user::' || t.userId)
-      WHERE t.type = 'trip'
-        AND t.status = 'planning'
-        AND t.visibility = 'public'
-        AND t.startDate BETWEEN $startDate AND $endDate
-      ORDER BY t.startDate
-      LIMIT $limit
-    `;
-    return await executeQuery(statement, { parameters: { startDate, endDate, limit } });
+    const usersBucket = process.env.BUCKET_USERS || 'travel_users';
+    
+    try {
+      const statement = `
+        SELECT META(t).id, t.*, u.username, u.profile.profilePhoto
+        FROM \`${bucketName}\` t
+        JOIN \`${usersBucket}\` u
+          ON KEYS ('user::' || t.userId)
+        WHERE t.type = 'trip'
+          AND t.status = 'planning'
+          AND t.visibility = 'public'
+          AND t.startDate BETWEEN $startDate AND $endDate
+        ORDER BY t.startDate
+        LIMIT $limit
+      `;
+      return await executeQuery(statement, { parameters: { startDate, endDate, limit } });
+    } catch (error) {
+      console.error('Error in getUpcomingTrips query:', error.message);
+      return [];
+    }
   },
 };
 
@@ -300,7 +321,7 @@ export const DestinationQueries = {
   async search(query, limit = 20) {
     const bucketName = process.env.BUCKET_TRIPS || 'travel_trips';
     const statement = `
-      SELECT META().id, d.id, d.name, d.country, d.countryCode, d.slug, d.summary, d.images, d.stats
+      SELECT META(d).id as metaId, d.id, d.name, d.country, d.countryCode, d.slug, d.summary, d.images, d.stats
       FROM ${bucketName} d
       WHERE d.type = 'destination'
         AND (LOWER(d.name) LIKE $query OR LOWER(d.country) LIKE $query)
