@@ -3,16 +3,15 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   Home, 
-  Compass, 
   Search, 
   User, 
   LogOut,
   Menu,
   X,
-  MapPin
+  MapPin,
+  Plane
 } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { getProfilePhotoUrl } from '../utils/imageUtils';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -29,7 +28,6 @@ const Navbar = () => {
 
   const navLinks = [
     { path: '/dashboard', icon: Home, label: 'Home' },
-    { path: '/explore', icon: Compass, label: 'Explore' },
     { path: '/search', icon: Search, label: 'Search' },
     { path: '/trips', icon: MapPin, label: 'Trips' },
   ];
@@ -40,7 +38,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <Compass className="w-8 h-8 text-primary-600" />
+            <Plane className="w-8 h-8 text-primary-600" />
             <span className="text-xl font-bold text-gray-900">TravelNet</span>
           </Link>
 
@@ -70,7 +68,7 @@ const Navbar = () => {
             >
               {user?.profile?.profilePhoto ? (
                 <img
-                  src={`${API_URL}${user.profile.profilePhoto}`}
+                  src={getProfilePhotoUrl(user.profile.profilePhoto)}
                   alt={user.username}
                   className="w-8 h-8 rounded-full object-cover"
                 />

@@ -6,30 +6,31 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
  * Get full URL for profile photo
- * @param {string} photoPath - Relative photo path from backend
- * @returns {string} Full URL to photo
+ * Supports both Cloudinary URLs (https://res.cloudinary.com/...)
+ * and legacy local paths (/uploads/...)
+ * @param {string} photoPath - Photo URL or relative path from backend
+ * @returns {string|null} Full URL to photo
  */
 export const getProfilePhotoUrl = (photoPath) => {
   if (!photoPath) return null;
-  
-  // If already full URL, return as is
+
+  // Already a full URL (Cloudinary or any external URL)
   if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
     return photoPath;
   }
-  
-  // If starts with /, concatenate with API_URL
+
+  // Legacy local path: prepend API server URL
   if (photoPath.startsWith('/')) {
     return `${API_URL}${photoPath}`;
   }
-  
-  // Otherwise, add both / and API_URL
+
   return `${API_URL}/${photoPath}`;
 };
 
 /**
- * Get full URL for trip/destination image
- * @param {string} imagePath - Relative image path from backend
- * @returns {string} Full URL to image
+ * Get full URL for trip/destination/post image
+ * @param {string} imagePath - Image URL or relative path from backend
+ * @returns {string|null} Full URL to image
  */
 export const getImageUrl = (imagePath) => {
   return getProfilePhotoUrl(imagePath);

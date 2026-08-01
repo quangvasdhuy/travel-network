@@ -28,6 +28,8 @@ export class Post {
       },
       tripId: data.tripId || null, // Associated trip (optional)
       destinationId: data.destinationId || null, // Associated destination (optional)
+      destinationName: data.destinationName || null, // Denormalized destination name
+      destinationCountry: data.destinationCountry || null, // Denormalized destination country
       location: data.location || null, // { name, country, coordinates: { lat, lon } }
       tags: data.tags || [], // ['travel', 'food', 'adventure']
       mentions: data.mentions || [], // Array of { userId, username }
@@ -89,6 +91,21 @@ export class Post {
    * @returns {Object} Updated post
    */
   static addComment(post, comment) {
+    // Khởi tạo interactions nếu chưa có (cho posts cũ)
+    if (!post.interactions) {
+      post.interactions = {
+        likes: [],
+        comments: [],
+      };
+    }
+    if (!post.stats) {
+      post.stats = {
+        likeCount: 0,
+        commentCount: 0,
+        viewCount: 0,
+      };
+    }
+
     const commentObj = {
       id: uuidv4(),
       userId: comment.userId,

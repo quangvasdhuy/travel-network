@@ -3,15 +3,18 @@ import { Link } from 'react-router-dom';
 import { Heart, MessageCircle, MapPin, MoreVertical, Trash2, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { postAPI } from '../services/api';
+import { getProfilePhotoUrl, getImageUrl } from '../utils/imageUtils';
 import toast from 'react-hot-toast';
 
 const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
   const [showMenu, setShowMenu] = useState(false);
-  const [isLiked, setIsLiked] = useState(post.likes?.includes(currentUserId));
+  const [isLiked, setIsLiked] = useState(
+    post.interactions?.likes?.includes(currentUserId) ?? false
+  );
   const [likeCount, setLikeCount] = useState(post.stats?.likeCount || 0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState(post.comments || []);
+  const [comments, setComments] = useState(post.interactions?.comments || []);
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
 
@@ -50,20 +53,21 @@ const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
 
   const handleAddComment = async (e) => {
     e.preventDefault();
-    
     if (!commentText.trim()) return;
 
     setSubmittingComment(true);
     try {
-      const response = await postAPI.addComment(post.id, { content: commentText });
-      const newComment = response.data.data.comment;
-      
-      setComments(prev => [...prev, newComment]);
+      // Backend đọc field "text", trả về updated post (data.post)
+      const response = await postAPI.addComment(post.id, { text: commentText });
+      const updatedPost = response.data.data.post;
+      // Lấy comment mới nhất từ interactions.comments của post được trả về
+      const newComments = updatedPost?.interactions?.comments || [];
+      setComments(newComments);
       setCommentText('');
       toast.success('Comment added');
     } catch (error) {
       console.error('Error adding comment:', error);
-      toast.error('Failed to add comment');
+      toast.error(error.response?.data?.message || 'Failed to add comment');
     } finally {
       setSubmittingComment(false);
     }
@@ -89,7 +93,7 @@ const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
         <Link to={`/profile/${post.authorUsername}`} className="flex items-center space-x-3">
           {post.authorPhoto ? (
             <img
-              src={post.authorPhoto}
+              src={getProfilePhotoUrl(post.authorPhoto)}
               alt={post.authorUsername}
               className="w-12 h-12 rounded-full object-cover"
             />
@@ -142,8 +146,19 @@ const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
         </p>
       </div>
 
-      {/* Location */}
-      {post.location?.name && (
+      {/* Destination */}
+      {post.destinationName && (
+        <div className="flex items-center space-x-1 text-sm text-primary-600 mb-3">
+          <MapPin className="w-4 h-4 flex-shrink-0" />
+          <span className="font-medium">
+            {post.destinationName}
+            {post.destinationCountry && `, ${post.destinationCountry}`}
+          </span>
+        </div>
+      )}
+
+      {/* Location (free-text) */}
+      {!post.destinationName && post.location?.name && (
         <div className="flex items-center space-x-1 text-sm text-gray-600 mb-4">
           <MapPin className="w-4 h-4" />
           <span>{post.location.name}</span>
@@ -166,7 +181,7 @@ const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
               }`}
             >
               <img
-                src={media.url}
+                src={getImageUrl(media.url)}
                 alt=""
                 className="w-full h-64 object-cover rounded-lg"
               />
@@ -200,7 +215,7 @@ const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
           aria-label="Comments"
         >
           <MessageCircle className="w-5 h-5" />
-          <span className="text-sm">{comments.length}</span>
+          <span className="text-sm">{comments.length || post.stats?.commentCount || 0}</span>
         </button>
       </div>
 
@@ -215,14 +230,14 @@ const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <Link
-                        to={`/profile/${comment.author?.username}`}
+                        to={`/profile/${comment.username}`}
                         className="font-medium text-gray-900 hover:text-primary-600 text-sm"
                       >
-                        {comment.author?.profile?.firstName} {comment.author?.profile?.lastName}
+                        {comment.username}
                       </Link>
-                      <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
+                      <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                        {comment.createdAt && formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                       </p>
                     </div>
                     

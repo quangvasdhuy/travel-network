@@ -86,16 +86,9 @@ export async function getPostById(postId, requestingUserId = null) {
 
     // Increment view count
     try {
-      await collection.mutateIn(Post.getKey(postId), [
-        {
-          opcode: 'counter',
-          path: 'stats.viewCount',
-          delta: 1,
-        },
-      ]);
-      post.stats.viewCount += 1;
+      post.stats.viewCount = (post.stats.viewCount || 0) + 1;
+      await collection.upsert(Post.getKey(postId), post);
     } catch (error) {
-      // Don't fail if view count update fails
       console.error('Failed to update view count:', error);
     }
 
@@ -288,11 +281,17 @@ export async function likePost(postId, userId) {
   const collection = contentBucket.defaultCollection;
 
   try {
-    // Get current post
     const result = await collection.get(Post.getKey(postId));
     const post = result.content;
 
-    // Check if already liked
+    // Khởi tạo interactions nếu chưa có (cho posts cũ)
+    if (!post.interactions) {
+      post.interactions = {
+        likes: [],
+        comments: [],
+      };
+    }
+
     if (post.interactions.likes.includes(userId)) {
       throw {
         statusCode: 409,
@@ -300,35 +299,18 @@ export async function likePost(postId, userId) {
       };
     }
 
-    // Add like
-    await collection.mutateIn(Post.getKey(postId), [
-      {
-        opcode: 'array_append',
-        path: 'interactions.likes',
-        value: userId,
-      },
-      {
-        opcode: 'counter',
-        path: 'stats.likeCount',
-        delta: 1,
-      },
-      {
-        opcode: 'dict_upsert',
-        path: 'updatedAt',
-        value: new Date().toISOString(),
-      },
-    ]);
+    // Modify in memory rồi upsert toàn bộ document
+    post.interactions.likes.push(userId);
+    post.stats = post.stats || {};
+    post.stats.likeCount = post.interactions.likes.length;
+    post.updatedAt = new Date().toISOString();
 
-    // Get updated post
-    const updatedResult = await collection.get(Post.getKey(postId));
-    return updatedResult.content;
+    await collection.upsert(Post.getKey(postId), post);
+    return post;
   } catch (error) {
     if (error.statusCode) throw error;
     if (error.name === 'DocumentNotFoundError') {
-      throw {
-        statusCode: 404,
-        message: 'Post not found',
-      };
+      throw { statusCode: 404, message: 'Post not found' };
     }
     throw error;
   }
@@ -345,11 +327,17 @@ export async function unlikePost(postId, userId) {
   const collection = contentBucket.defaultCollection;
 
   try {
-    // Get current post
     const result = await collection.get(Post.getKey(postId));
     const post = result.content;
 
-    // Check if liked
+    // Khởi tạo interactions nếu chưa có
+    if (!post.interactions) {
+      post.interactions = {
+        likes: [],
+        comments: [],
+      };
+    }
+
     const likeIndex = post.interactions.likes.indexOf(userId);
     if (likeIndex === -1) {
       throw {
@@ -358,37 +346,18 @@ export async function unlikePost(postId, userId) {
       };
     }
 
-    // Remove like
+    // Modify in memory rồi upsert toàn bộ document
     post.interactions.likes.splice(likeIndex, 1);
+    post.stats = post.stats || {};
+    post.stats.likeCount = post.interactions.likes.length;
+    post.updatedAt = new Date().toISOString();
 
-    await collection.mutateIn(Post.getKey(postId), [
-      {
-        opcode: 'dict_upsert',
-        path: 'interactions.likes',
-        value: post.interactions.likes,
-      },
-      {
-        opcode: 'counter',
-        path: 'stats.likeCount',
-        delta: -1,
-      },
-      {
-        opcode: 'dict_upsert',
-        path: 'updatedAt',
-        value: new Date().toISOString(),
-      },
-    ]);
-
-    // Get updated post
-    const updatedResult = await collection.get(Post.getKey(postId));
-    return updatedResult.content;
+    await collection.upsert(Post.getKey(postId), post);
+    return post;
   } catch (error) {
     if (error.statusCode) throw error;
     if (error.name === 'DocumentNotFoundError') {
-      throw {
-        statusCode: 404,
-        message: 'Post not found',
-      };
+      throw { statusCode: 404, message: 'Post not found' };
     }
     throw error;
   }
@@ -563,6 +532,7 @@ export default {
   getPostsByAuthor,
   getPostsByDestination,
   getFeedForUser,
+  getPopularPosts,
   updatePost,
   deletePost,
   likePost,
@@ -571,3 +541,16 @@ export default {
   getComments,
   deleteComment,
 };
+
+/**
+ * Get popular posts (public posts sorted by engagement)
+ * @param {Object} options - Query options { limit, offset }
+ * @returns {Promise<Array>} Popular posts
+ */
+export async function getPopularPosts(options = {}) {
+  const { limit = 20, offset = 0 } = options;
+
+  const posts = await PostQueries.getPopular(limit, offset);
+
+  return posts.map((postDoc) => postDoc.p || postDoc);
+}

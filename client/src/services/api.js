@@ -117,6 +117,8 @@ export const postAPI = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   getFeed: (params) => api.get('/api/posts/feed', { params }),
+  getPopular: (params) => api.get('/api/posts/popular', { params }),
+  getByUser: (userId, params) => api.get(`/api/posts/user/${userId}`, { params }),
   getById: (id) => api.get(`/api/posts/${id}`),
   update: (id, data) => api.put(`/api/posts/${id}`, data),
   delete: (id) => api.delete(`/api/posts/${id}`),
@@ -147,4 +149,5 @@ export const discoveryAPI = {
   getExplore: () => api.get('/api/discovery/explore'),
 };
 
+export { api };
 export default api;

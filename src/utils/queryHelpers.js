@@ -107,6 +107,27 @@ export const TripQueries = {
   },
 
   /**
+   * Count trips by user ID
+   */
+  async countByUserId(userId) {
+    const bucketName = process.env.BUCKET_TRIPS || 'travel_trips';
+    
+    try {
+      const statement = `
+        SELECT COUNT(*) as count
+        FROM \`${bucketName}\` t
+        WHERE t.type = 'trip' AND t.userId = $userId
+      `;
+      
+      const results = await executeQuery(statement, { parameters: { userId } });
+      return results[0]?.count || 0;
+    } catch (error) {
+      console.error('Error in countByUserId query:', error.message);
+      return 0;
+    }
+  },
+
+  /**
    * Find trips by destination
    */
   async getByDestination(destinationId, limit = 20, offset = 0) {
@@ -175,6 +196,35 @@ export const PostQueries = {
       LIMIT $limit OFFSET $offset
     `;
     return await executeQuery(statement, { parameters: { authorId, limit, offset } });
+  },
+
+  /**
+   * Count posts by author
+   */
+  async countByAuthor(authorId) {
+    const bucketName = process.env.BUCKET_CONTENT || 'travel_content';
+    const statement = `
+      SELECT COUNT(*) as count
+      FROM ${bucketName} p
+      WHERE p.type = 'post' AND p.authorId = $authorId
+    `;
+    const result = await executeQuery(statement, { parameters: { authorId } });
+    return result[0]?.count || 0;
+  },
+
+  /**
+   * Get popular posts (sorted by engagement: likes + comments)
+   */
+  async getPopular(limit = 20, offset = 0) {
+    const bucketName = process.env.BUCKET_CONTENT || 'travel_content';
+    const statement = `
+      SELECT META().id, p.*
+      FROM ${bucketName} p
+      WHERE p.type = 'post' AND p.visibility = 'public'
+      ORDER BY (IFMISSINGORNULL(p.stats.likeCount, 0) + IFMISSINGORNULL(p.stats.commentCount, 0)) DESC, p.createdAt DESC
+      LIMIT $limit OFFSET $offset
+    `;
+    return await executeQuery(statement, { parameters: { limit, offset } });
   },
 
   /**
@@ -276,6 +326,38 @@ export const ConnectionQueries = {
       parameters: { followerId, followingId },
     });
     return result[0]?.count > 0;
+  },
+
+  /**
+   * Count followers of a user
+   */
+  async countFollowers(userId) {
+    const bucketName = process.env.BUCKET_SOCIAL || 'travel_social';
+    const statement = `
+      SELECT COUNT(*) as count
+      FROM ${bucketName} c
+      WHERE c.type = 'connection' 
+        AND c.followingId = $userId
+        AND c.status = 'active'
+    `;
+    const result = await executeQuery(statement, { parameters: { userId } });
+    return result[0]?.count || 0;
+  },
+
+  /**
+   * Count users that a user is following
+   */
+  async countFollowing(userId) {
+    const bucketName = process.env.BUCKET_SOCIAL || 'travel_social';
+    const statement = `
+      SELECT COUNT(*) as count
+      FROM ${bucketName} c
+      WHERE c.type = 'connection' 
+        AND c.followerId = $userId
+        AND c.status = 'active'
+    `;
+    const result = await executeQuery(statement, { parameters: { userId } });
+    return result[0]?.count || 0;
   },
 };
 

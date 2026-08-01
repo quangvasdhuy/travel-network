@@ -16,7 +16,6 @@ import { ConnectionQueries } from '../utils/queryHelpers.js';
  * @returns {Promise<Object>} Connection document
  */
 export async function followUser(followerId, followingId, followerUsername, followingUsername) {
-  // Validate
   if (followerId === followingId) {
     throw {
       statusCode: 400,
@@ -24,16 +23,26 @@ export async function followUser(followerId, followingId, followerUsername, foll
     };
   }
 
-  // Check if connection already exists
-  const existing = await ConnectionQueries.isFollowing(followerId, followingId);
-  if (existing) {
+  const socialBucket = dbConnection.getBucket('social');
+  const collection = socialBucket.defaultCollection;
+  const key = Connection.getKey(followerId, followingId);
+
+  // Kiểm tra đã follow chưa bằng key lookup (nhanh hơn N1QL, không cần index)
+  try {
+    await collection.get(key);
+    // Document tồn tại → đã follow rồi
     throw {
       statusCode: 409,
       message: 'You are already following this user',
     };
+  } catch (error) {
+    if (error.statusCode === 409) throw error;
+    // DocumentNotFoundError → chưa follow, tiếp tục
+    if (error.name !== 'DocumentNotFoundError') {
+      console.error('Error checking existing connection:', error.name, error.message);
+    }
   }
 
-  // Create connection document
   const connection = Connection.create({
     followerId,
     followerUsername,
@@ -41,7 +50,6 @@ export async function followUser(followerId, followingId, followerUsername, foll
     followingUsername,
   });
 
-  // Validate
   const validation = Connection.validate(connection);
   if (!validation.valid) {
     throw {
@@ -51,22 +59,23 @@ export async function followUser(followerId, followingId, followerUsername, foll
     };
   }
 
-  // Save to database
-  const socialBucket = dbConnection.getBucket('social');
-  const collection = socialBucket.defaultCollection;
-
-  const key = Connection.getKey(followerId, followingId);
-
   try {
     await collection.insert(key, connection);
 
-    // Update follower and following counts
     await updateFollowerCount(followingId, 1);
     await updateFollowingCount(followerId, 1);
 
     return connection;
   } catch (error) {
-    console.error('Error creating connection:', error);
+    console.error('Error creating connection:', error.name, error.message);
+
+    if (error.name === 'DocumentExistsError') {
+      throw {
+        statusCode: 409,
+        message: 'You are already following this user',
+      };
+    }
+
     throw {
       statusCode: 500,
       message: 'Failed to follow user',
@@ -83,13 +92,11 @@ export async function followUser(followerId, followingId, followerUsername, foll
 export async function unfollowUser(followerId, followingId) {
   const socialBucket = dbConnection.getBucket('social');
   const collection = socialBucket.defaultCollection;
-
   const key = Connection.getKey(followerId, followingId);
 
   try {
     await collection.remove(key);
 
-    // Update follower and following counts
     await updateFollowerCount(followingId, -1);
     await updateFollowingCount(followerId, -1);
   } catch (error) {
@@ -109,16 +116,68 @@ export async function unfollowUser(followerId, followingId) {
  * @param {Object} options - Pagination options
  * @returns {Promise<Array>} List of followers
  */
+/**
+ * Get user's followers
+ * @param {string} userId - User ID
+ * @param {Object} options - Pagination options
+ * @returns {Promise<Array>} List of followers
+ */
 export async function getFollowers(userId, options = {}) {
-  const { limit = 20, offset = 0 } = options;
+  const { limit = 20, offset = 0, currentUserId = null } = options;
 
-  const followers = await ConnectionQueries.getFollowers(userId, limit, offset);
+  const connections = await ConnectionQueries.getFollowers(userId, limit, offset);
 
-  return followers.map((conn) => ({
-    userId: conn.followerId,
-    username: conn.followerUsername,
-    followedAt: conn.createdAt,
-  }));
+  if (connections.length === 0) return [];
+
+  // Enrich với user profile từ users bucket
+  const usersBucket = dbConnection.getBucket('users');
+  const collection = usersBucket.defaultCollection;
+  const socialBucket = dbConnection.getBucket('social');
+  const socialCollection = socialBucket.defaultCollection;
+
+  const enriched = await Promise.all(
+    connections.map(async (conn) => {
+      try {
+        const result = await collection.get(`user::${conn.followerId}`);
+        const user = result.content;
+
+        // Check if currentUser is following this follower
+        let isFollowing = false;
+        if (currentUserId && currentUserId !== conn.followerId) {
+          try {
+            await socialCollection.get(Connection.getKey(currentUserId, conn.followerId));
+            isFollowing = true;
+          } catch {
+            isFollowing = false;
+          }
+        }
+
+        return {
+          id: user.id,
+          userId: user.id,
+          username: user.username,
+          profile: user.profile,
+          stats: user.stats,
+          interests: user.interests,
+          followedAt: conn.createdAt,
+          isFollowing,
+        };
+      } catch {
+        // Fallback nếu user không tìm được
+        return {
+          id: conn.followerId,
+          userId: conn.followerId,
+          username: conn.followerUsername,
+          profile: null,
+          stats: null,
+          followedAt: conn.createdAt,
+          isFollowing: false,
+        };
+      }
+    })
+  );
+
+  return enriched;
 }
 
 /**
@@ -128,15 +187,60 @@ export async function getFollowers(userId, options = {}) {
  * @returns {Promise<Array>} List of users being followed
  */
 export async function getFollowing(userId, options = {}) {
-  const { limit = 20, offset = 0 } = options;
+  const { limit = 20, offset = 0, currentUserId = null } = options;
 
-  const following = await ConnectionQueries.getFollowing(userId, limit, offset);
+  const connections = await ConnectionQueries.getFollowing(userId, limit, offset);
 
-  return following.map((conn) => ({
-    userId: conn.followingId,
-    username: conn.followingUsername,
-    followedAt: conn.createdAt,
-  }));
+  if (connections.length === 0) return [];
+
+  // Enrich với user profile từ users bucket
+  const usersBucket = dbConnection.getBucket('users');
+  const collection = usersBucket.defaultCollection;
+  const socialBucket = dbConnection.getBucket('social');
+  const socialCollection = socialBucket.defaultCollection;
+
+  const enriched = await Promise.all(
+    connections.map(async (conn) => {
+      try {
+        const result = await collection.get(`user::${conn.followingId}`);
+        const user = result.content;
+
+        // Check if currentUser is following this person
+        let isFollowing = false;
+        if (currentUserId && currentUserId !== conn.followingId) {
+          try {
+            await socialCollection.get(Connection.getKey(currentUserId, conn.followingId));
+            isFollowing = true;
+          } catch {
+            isFollowing = false;
+          }
+        }
+
+        return {
+          id: user.id,
+          userId: user.id,
+          username: user.username,
+          profile: user.profile,
+          stats: user.stats,
+          interests: user.interests,
+          followedAt: conn.createdAt,
+          isFollowing,
+        };
+      } catch {
+        return {
+          id: conn.followingId,
+          userId: conn.followingId,
+          username: conn.followingUsername,
+          profile: null,
+          stats: null,
+          followedAt: conn.createdAt,
+          isFollowing: false,
+        };
+      }
+    })
+  );
+
+  return enriched;
 }
 
 /**
@@ -146,19 +250,28 @@ export async function getFollowing(userId, options = {}) {
  * @returns {Promise<boolean>} True if following
  */
 export async function isFollowing(followerId, followingId) {
-  return await ConnectionQueries.isFollowing(followerId, followingId);
+  // Dùng key lookup thay vì N1QL để tránh phụ thuộc vào index
+  try {
+    const socialBucket = dbConnection.getBucket('social');
+    const collection = socialBucket.defaultCollection;
+    await collection.get(Connection.getKey(followerId, followingId));
+    return true;
+  } catch (error) {
+    if (error.name === 'DocumentNotFoundError') return false;
+    // Fallback về N1QL nếu key lookup lỗi vì lý do khác
+    return await ConnectionQueries.isFollowing(followerId, followingId).catch(() => false);
+  }
 }
 
-/**
- * Get connection status between two users
- * @param {string} userId - Current user ID
- * @param {string} targetUserId - Target user ID
- * @returns {Promise<Object>} Connection status
- */
 export async function getConnectionStatus(userId, targetUserId) {
+  const socialBucket = dbConnection.getBucket('social');
+  const collection = socialBucket.defaultCollection;
+
   const [isFollowingTarget, isFollowedByTarget] = await Promise.all([
-    ConnectionQueries.isFollowing(userId, targetUserId),
-    ConnectionQueries.isFollowing(targetUserId, userId),
+    collection.get(Connection.getKey(userId, targetUserId))
+      .then(() => true).catch(() => false),
+    collection.get(Connection.getKey(targetUserId, userId))
+      .then(() => true).catch(() => false),
   ]);
 
   return {
@@ -179,36 +292,20 @@ export async function getSuggestedConnections(userId, limit = 10) {
   const cluster = dbConnection.getCluster();
   const usersBucket = process.env.BUCKET_USERS || 'travel_users';
   const socialBucket = process.env.BUCKET_SOCIAL || 'travel_social';
-  const tripsBucket = process.env.BUCKET_TRIPS || 'travel_trips';
 
-  // Get users who have mutual connections or common destinations
+  // Đơn giản: gợi ý users active, không phải mình, chưa follow, sort by followerCount
   const statement = `
-    SELECT DISTINCT u.id, u.username, u.profile, u.stats,
-      (SELECT COUNT(*) FROM ${socialBucket} c 
-       WHERE c.followerId = $userId AND c.followingId = u.id) as alreadyFollowing
-    FROM ${usersBucket} u
+    SELECT u.id, u.username, u.profile, u.stats
+    FROM \`${usersBucket}\` u
     WHERE u.type = 'user' 
       AND u.status = 'active'
       AND u.id != $userId
-      AND (
-        -- Users with mutual connections
-        u.id IN (
-          SELECT RAW c2.followingId 
-          FROM ${socialBucket} c1
-          JOIN ${socialBucket} c2 ON c1.followingId = c2.followerId
-          WHERE c1.followerId = $userId AND c1.status = 'active' AND c2.status = 'active'
-        )
-        OR
-        -- Users with similar interests (array intersection)
-        ARRAY_LENGTH(ARRAY_INTERSECT(u.interests, 
-          (SELECT RAW u2.interests FROM ${usersBucket} u2 WHERE u2.id = $userId)[0]
-        )) > 0
+      AND u.id NOT IN (
+        SELECT RAW c.followingId 
+        FROM \`${socialBucket}\` c 
+        WHERE c.type = 'connection' AND c.followerId = $userId AND c.status = 'active'
       )
-      AND NOT EXISTS (
-        SELECT 1 FROM ${socialBucket} c 
-        WHERE c.followerId = $userId AND c.followingId = u.id
-      )
-    ORDER BY u.stats.followerCount DESC
+    ORDER BY IFMISSINGORNULL(u.stats.followerCount, 0) DESC
     LIMIT $limit
   `;
 
@@ -218,13 +315,16 @@ export async function getSuggestedConnections(userId, limit = 10) {
     });
 
     return result.rows.map((row) => ({
+      id: row.id,
       userId: row.id,
       username: row.username,
       profile: row.profile,
       stats: row.stats,
+      isFollowing: false,
     }));
   } catch (error) {
     console.error('Error getting suggested connections:', error);
+    console.error('Error details:', error.message);
     return [];
   }
 }
@@ -271,39 +371,27 @@ async function updateFollowerCount(userId, delta) {
   try {
     const usersBucket = dbConnection.getBucket('users');
     const collection = usersBucket.defaultCollection;
-
-    await collection.mutateIn(`user::${userId}`, [
-      {
-        opcode: 'counter',
-        path: 'stats.followerCount',
-        delta: delta,
-      },
-    ]);
+    const result = await collection.get(`user::${userId}`);
+    const user = result.content;
+    user.stats.followerCount = Math.max(0, (user.stats.followerCount || 0) + delta);
+    user.updatedAt = new Date().toISOString();
+    await collection.upsert(`user::${userId}`, user);
   } catch (error) {
-    console.error('Failed to update follower count:', error);
-    // Don't fail the main operation
+    console.error('Failed to update follower count:', error.message);
   }
 }
 
-/**
- * Update user's following count
- * @private
- */
 async function updateFollowingCount(userId, delta) {
   try {
     const usersBucket = dbConnection.getBucket('users');
     const collection = usersBucket.defaultCollection;
-
-    await collection.mutateIn(`user::${userId}`, [
-      {
-        opcode: 'counter',
-        path: 'stats.followingCount',
-        delta: delta,
-      },
-    ]);
+    const result = await collection.get(`user::${userId}`);
+    const user = result.content;
+    user.stats.followingCount = Math.max(0, (user.stats.followingCount || 0) + delta);
+    user.updatedAt = new Date().toISOString();
+    await collection.upsert(`user::${userId}`, user);
   } catch (error) {
-    console.error('Failed to update following count:', error);
-    // Don't fail the main operation
+    console.error('Failed to update following count:', error.message);
   }
 }
 

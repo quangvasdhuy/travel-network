@@ -4,47 +4,15 @@
  */
 
 import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
 import Joi from 'joi';
 import postService from '../services/postService.js';
+import destinationService from '../services/destinationService.js';
+import { uploadPostMedia } from '../config/cloudinary.js';
 
 const router = express.Router();
-
-// Configure multer for post media uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/posts/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|mov|avi/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only images and videos are allowed'));
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
-  },
-  fileFilter: fileFilter,
-});
 
 // Validation schemas
 const postSchemas = {
@@ -91,7 +59,7 @@ const postSchemas = {
  * @body {Object} Post data
  * @returns {Object} Created post
  */
-router.post('/', authenticate, upload.array('media', 5), asyncHandler(async (req, res) => {
+router.post('/', authenticate, uploadPostMedia.array('media', 5), asyncHandler(async (req, res) => {
   const postData = {
     postType: req.body.postType || 'text',
     content: {
@@ -99,17 +67,33 @@ router.post('/', authenticate, upload.array('media', 5), asyncHandler(async (req
       media: [],
     },
     tripId: req.body.tripId,
-    destinationId: req.body.destinationId,
+    destinationId: req.body.destinationId || null,
+    destinationName: null,
+    destinationCountry: null,
     location: req.body.location ? JSON.parse(req.body.location) : null,
     tags: req.body.tags ? JSON.parse(req.body.tags) : [],
     visibility: req.body.visibility || 'public',
   };
 
-  // Add uploaded media files
+  // Resolve destination name nếu có destinationId
+  if (postData.destinationId) {
+    try {
+      const destination = await destinationService.getDestinationById(postData.destinationId);
+      if (destination) {
+        postData.destinationName = destination.name;
+        postData.destinationCountry = destination.country;
+      }
+    } catch (err) {
+      // Không fail nếu không tìm được destination
+      console.error('Failed to resolve destination:', err.message);
+    }
+  }
+
+  // Cloudinary trả về full URL trong file.path
   if (req.files && req.files.length > 0) {
     postData.content.media = req.files.map((file) => ({
       type: file.mimetype.startsWith('video') ? 'video' : 'image',
-      url: `/uploads/posts/${file.filename}`,
+      url: file.path,
       caption: '',
     }));
   }
@@ -125,6 +109,37 @@ router.post('/', authenticate, upload.array('media', 5), asyncHandler(async (req
     success: true,
     data: { post },
     message: 'Post created successfully',
+  });
+}));
+
+/**
+ * Get popular posts (public, sorted by engagement)
+ * 
+ * @route GET /api/posts/popular
+ * @auth Optional
+ * @query {number} [limit=20] - Results limit
+ * @query {number} [page=1] - Page number
+ * @returns {Object} List of popular posts
+ */
+router.get('/popular', optionalAuth, asyncHandler(async (req, res) => {
+  const { limit = 20, page = 1 } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+
+  const posts = await postService.getPopularPosts({
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      posts,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        count: posts.length,
+      },
+    },
   });
 }));
 

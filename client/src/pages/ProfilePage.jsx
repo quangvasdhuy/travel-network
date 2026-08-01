@@ -7,8 +7,7 @@ import PostCard from '../components/PostCard';
 import UserCard from '../components/UserCard';
 import toast from 'react-hot-toast';
 import { MapPin, Calendar, Users, Settings, Grid, UserCheck, UserPlus } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { getProfilePhotoUrl } from '../utils/imageUtils';
 
 const ProfilePage = () => {
   const { username } = useParams();
@@ -40,12 +39,13 @@ const ProfilePage = () => {
       const userData = response.data.data.user || response.data.data;
       setProfile(userData);
 
-      console.log('Profile loaded:', userData); // Debug log
-
       // Check follow status if not own profile
       if (!isOwnProfile && userData.id) {
         const statusResponse = await connectionAPI.getConnectionStatus(userData.id);
-        setIsFollowing(statusResponse.data.data.isFollowing);
+        const status = statusResponse.data.data?.status || statusResponse.data.data;
+        setIsFollowing(status?.isFollowing ?? false);
+      } else {
+        setIsFollowing(false);
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -64,21 +64,14 @@ const ProfilePage = () => {
     setLoadingTab(true);
     try {
       if (activeTab === 'posts') {
-        const response = await postAPI.getFeed({ 
-          authorId: profile.id,
-          limit: 20 
-        });
+        const response = await postAPI.getByUser(profile.id, { limit: 20 });
         setPosts(response.data.data.posts || []);
       } else if (activeTab === 'followers') {
         const response = await connectionAPI.getFollowers(profile.id);
-        console.log('Followers response:', response.data);
-        // Handle nested data structure: response.data.data.followers
         const followersData = response.data.data?.followers || response.data.data || [];
         setFollowers(Array.isArray(followersData) ? followersData : []);
       } else if (activeTab === 'following') {
         const response = await connectionAPI.getFollowing(profile.id);
-        console.log('Following response:', response.data);
-        // Handle nested data structure: response.data.data.following
         const followingData = response.data.data?.following || response.data.data || [];
         setFollowing(Array.isArray(followingData) ? followingData : []);
       }
@@ -94,32 +87,51 @@ const ProfilePage = () => {
   };
 
   const handleFollowToggle = async () => {
+    const wasFollowing = isFollowing;
+    // Optimistic update
+    setIsFollowing(!wasFollowing);
+    setProfile(prev => ({
+      ...prev,
+      stats: {
+        ...prev.stats,
+        followerCount: (prev.stats?.followerCount || 0) + (wasFollowing ? -1 : 1),
+      },
+    }));
+
     try {
-      if (isFollowing) {
+      if (wasFollowing) {
         await connectionAPI.unfollow(profile.id);
-        setIsFollowing(false);
-        setProfile(prev => ({
-          ...prev,
-          stats: {
-            ...prev.stats,
-            followerCount: (prev.stats?.followerCount || 1) - 1,
-          },
-        }));
         toast.success(`Unfollowed ${profile.username}`);
       } else {
         await connectionAPI.follow(profile.id);
+        toast.success(`Following ${profile.username}`);
+      }
+
+      // Reload profile để sync đúng count từ backend
+      await loadProfile();
+    } catch (error) {
+      const status = error.response?.status;
+      // 409 khi follow = đang follow rồi → sync state về đúng
+      // 404 khi unfollow = chưa follow → sync state về đúng
+      if (status === 409) {
         setIsFollowing(true);
+        await loadProfile(); // Reload để lấy count chính xác
+        toast('Already following', { icon: 'ℹ️' });
+      } else if (status === 404) {
+        setIsFollowing(false);
+        await loadProfile(); // Reload để lấy count chính xác
+      } else {
+        // Rollback optimistic update
+        setIsFollowing(wasFollowing);
         setProfile(prev => ({
           ...prev,
           stats: {
             ...prev.stats,
-            followerCount: (prev.stats?.followerCount || 0) + 1,
+            followerCount: (prev.stats?.followerCount || 0) + (wasFollowing ? 1 : -1),
           },
         }));
-        toast.success(`Following ${profile.username}`);
+        toast.error('Failed to update follow status');
       }
-    } catch (error) {
-      toast.error('Failed to update follow status');
     }
   };
 
@@ -130,11 +142,13 @@ const ProfilePage = () => {
 
       if (isCurrentlyFollowing) {
         await connectionAPI.unfollow(userId);
+        toast.success('Unfollowed');
       } else {
         await connectionAPI.follow(userId);
+        toast.success('Following');
       }
 
-      // Update the user in both lists
+      // Optimistic update trong list hiện tại
       const updateUser = (userList) =>
         userList.map(u =>
           u.id === userId ? { ...u, isFollowing: !isCurrentlyFollowing } : u
@@ -142,8 +156,17 @@ const ProfilePage = () => {
 
       setFollowers(updateUser);
       setFollowing(updateUser);
+
+      // Reload lại tab hiện tại để sync đúng count và state
+      loadTabData();
     } catch (error) {
-      toast.error('Failed to update follow status');
+      const status = error.response?.status;
+      if (status === 409 || status === 404) {
+        // Đã follow hoặc chưa follow — reload để sync
+        loadTabData();
+      } else {
+        toast.error('Failed to update follow status');
+      }
     }
   };
 
@@ -185,7 +208,7 @@ const ProfilePage = () => {
             {/* Profile Photo */}
             {profile.profile?.profilePhoto ? (
               <img
-                src={`${API_URL}${profile.profile.profilePhoto}`}
+                src={getProfilePhotoUrl(profile.profile.profilePhoto)}
                 alt={profile.username}
                 className="w-32 h-32 rounded-full object-cover"
               />
@@ -394,7 +417,7 @@ const ProfilePage = () => {
                       <UserCard
                         key={follower.id}
                         user={follower}
-                        showFollowButton={!isOwnProfile && follower.id !== currentUser?.id}
+                        showFollowButton={follower.id !== currentUser?.id}
                         onFollowToggle={handleUserFollowToggle}
                         isFollowing={follower.isFollowing}
                       />
@@ -422,7 +445,7 @@ const ProfilePage = () => {
                       <UserCard
                         key={user.id}
                         user={user}
-                        showFollowButton={!isOwnProfile && user.id !== currentUser?.id}
+                        showFollowButton={user.id !== currentUser?.id}
                         onFollowToggle={handleUserFollowToggle}
                         isFollowing={user.isFollowing}
                       />

@@ -5,7 +5,7 @@
 
 import dbConnection from '../config/database.js';
 import { User } from '../models/User.js';
-import { UserQueries } from '../utils/queryHelpers.js';
+import { UserQueries, PostQueries, ConnectionQueries, TripQueries } from '../utils/queryHelpers.js';
 
 /**
  * Get user profile by ID
@@ -26,6 +26,26 @@ export async function getUserProfile(userId, isOwnProfile = false) {
         statusCode: 404,
         message: 'User not found',
       };
+    }
+
+    // Đếm stats thực tế từ DB
+    try {
+      const [actualPostCount, actualFollowerCount, actualFollowingCount, actualTripCount] = await Promise.all([
+        PostQueries.countByAuthor(userId),
+        ConnectionQueries.countFollowers(userId),
+        ConnectionQueries.countFollowing(userId),
+        TripQueries.countByUserId(userId),
+      ]);
+
+      user.stats = {
+        ...user.stats,
+        postCount: actualPostCount,
+        followerCount: actualFollowerCount,
+        followingCount: actualFollowingCount,
+        tripCount: actualTripCount,
+      };
+    } catch (err) {
+      console.error('Failed to count user stats:', err.message);
     }
 
     // Return full profile for own profile, public profile for others
@@ -71,7 +91,29 @@ export async function getUserByUsername(username) {
     };
   }
 
-  return User.toPublicProfile(user);
+  const profile = User.toPublicProfile(user);
+
+  // Đếm postCount, followerCount, followingCount, tripCount thực tế từ DB
+  try {
+    const [actualPostCount, actualFollowerCount, actualFollowingCount, actualTripCount] = await Promise.all([
+      PostQueries.countByAuthor(profile.id),
+      ConnectionQueries.countFollowers(profile.id),
+      ConnectionQueries.countFollowing(profile.id),
+      TripQueries.countByUserId(profile.id),
+    ]);
+    
+    profile.stats = {
+      ...profile.stats,
+      postCount: actualPostCount,
+      followerCount: actualFollowerCount,
+      followingCount: actualFollowingCount,
+      tripCount: actualTripCount,
+    };
+  } catch (err) {
+    console.error('Failed to count user stats:', err.message);
+  }
+
+  return profile;
 }
 
 /**

@@ -12,7 +12,6 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePage from './pages/EditProfilePage';
-import ExplorePage from './pages/ExplorePage';
 import SearchPage from './pages/SearchPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TripDetailPage from './pages/TripDetailPage';
@@ -62,7 +61,6 @@ function App() {
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/profile/:username" element={<ProfilePage />} />
                 <Route path="/profile/edit" element={<EditProfilePage />} />
-                <Route path="/explore" element={<ExplorePage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/trips" element={<TripsPage />} />
                 <Route path="/trips/create" element={<CreateTripPage />} />

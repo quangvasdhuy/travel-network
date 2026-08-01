@@ -5,8 +5,7 @@ import { userAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { Camera, Save, X } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { getProfilePhotoUrl } from '../utils/imageUtils';
 
 const EditProfilePage = () => {
   const { user, updateUser } = useAuth();
@@ -132,7 +131,7 @@ const EditProfilePage = () => {
               <div className="flex items-center space-x-4">
                 {user?.profile?.profilePhoto ? (
                   <img
-                    src={`${API_URL}${user.profile.profilePhoto}`}
+                    src={getProfilePhotoUrl(user.profile.profilePhoto)}
                     alt={user.username}
                     className="w-20 h-20 rounded-full object-cover"
                   />

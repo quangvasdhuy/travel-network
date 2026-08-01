@@ -4,47 +4,13 @@
  */
 
 import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate, schemas } from '../middleware/validation.js';
+import { uploadProfilePhoto } from '../config/cloudinary.js';
 import userService from '../services/userService.js';
 
 const router = express.Router();
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/profiles/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${uuidv4()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  // Accept images only
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: fileFilter,
-});
 
 /**
  * Get current user's profile
@@ -90,7 +56,7 @@ router.patch('/me', authenticate, asyncHandler(async (req, res) => {
  * @body {File} photo - Image file
  * @returns {Object} Updated user profile
  */
-router.post('/me/photo', authenticate, upload.single('photo'), asyncHandler(async (req, res) => {
+router.post('/me/photo', authenticate, uploadProfilePhoto.single('photo'), asyncHandler(async (req, res) => {
   if (!req.file) {
     throw {
       statusCode: 400,
@@ -98,16 +64,16 @@ router.post('/me/photo', authenticate, upload.single('photo'), asyncHandler(asyn
     };
   }
 
-  // Store relative path
-  const photoPath = `/uploads/profiles/${req.file.filename}`;
+  // Cloudinary trả về full URL trong req.file.path
+  const photoUrl = req.file.path;
 
-  const updatedProfile = await userService.updateProfilePhoto(req.user.id, photoPath);
+  const updatedProfile = await userService.updateProfilePhoto(req.user.id, photoUrl);
 
   res.status(200).json({
     success: true,
     data: {
       user: updatedProfile,
-      photoUrl: photoPath,
+      photoUrl,
     },
     message: 'Profile photo updated successfully',
   });

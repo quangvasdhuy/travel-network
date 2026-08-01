@@ -27,6 +27,7 @@ const sampleUsers = [
     bio: 'Adventure seeker | 🌍 Visited 30+ countries | Nature lover 🏔️',
     location: { city: 'San Francisco', country: 'USA' },
     interests: ['hiking', 'photography', 'backpacking', 'wildlife'],
+    profilePhoto: 'https://i.pravatar.cc/400?img=47',
   },
   {
     username: 'explorer_mike',
@@ -37,6 +38,7 @@ const sampleUsers = [
     bio: 'Digital nomad 💻 | Food enthusiast 🍜 | Always looking for the next adventure',
     location: { city: 'Tokyo', country: 'Japan' },
     interests: ['food', 'culture', 'photography', 'urban exploration'],
+    profilePhoto: 'https://i.pravatar.cc/400?img=12',
   },
   {
     username: 'wanderlust_emma',
@@ -47,6 +49,7 @@ const sampleUsers = [
     bio: 'Solo traveler ✈️ | Beach lover 🏖️ | Yoga instructor 🧘‍♀️',
     location: { city: 'Barcelona', country: 'Spain' },
     interests: ['beaches', 'yoga', 'wellness', 'solo travel'],
+    profilePhoto: 'https://i.pravatar.cc/400?img=32',
   },
   {
     username: 'adventure_alex',
@@ -57,6 +60,7 @@ const sampleUsers = [
     bio: 'Mountain climber 🏔️ | Extreme sports junkie | Living life on the edge',
     location: { city: 'Kathmandu', country: 'Nepal' },
     interests: ['climbing', 'trekking', 'extreme sports', 'mountains'],
+    profilePhoto: 'https://i.pravatar.cc/400?img=68',
   },
   {
     username: 'cultural_lisa',
@@ -67,6 +71,7 @@ const sampleUsers = [
     bio: 'History buff 📚 | Art lover 🎨 | Museum hopper',
     location: { city: 'Rome', country: 'Italy' },
     interests: ['history', 'art', 'museums', 'architecture'],
+    profilePhoto: 'https://i.pravatar.cc/400?img=25',
   },
 ];
 
@@ -75,34 +80,42 @@ const samplePosts = [
   {
     text: 'Just hiked to Machu Picchu! The sunrise view was absolutely breathtaking. One of the most incredible experiences of my life! 🌄',
     location: { name: 'Machu Picchu, Peru', coordinates: { lat: -13.1631, lon: -72.5450 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800',
   },
   {
     text: 'Best ramen I\'ve ever had! This little shop in Tokyo serves the most amazing tonkotsu ramen 🍜 #foodie #tokyo',
     location: { name: 'Tokyo, Japan', coordinates: { lat: 35.6762, lon: 139.6503 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800',
   },
   {
     text: 'Sunset yoga session on the beach in Bali 🧘‍♀️🌅 Pure bliss!',
     location: { name: 'Bali, Indonesia', coordinates: { lat: -8.3405, lon: 115.0920 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800',
   },
   {
     text: 'Reached the summit of Mount Kilimanjaro after 6 days of climbing! Every step was worth it 🏔️',
     location: { name: 'Mount Kilimanjaro, Tanzania', coordinates: { lat: -3.0674, lon: 37.3556 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1589553416260-f586c8f1514f?w=800',
   },
   {
     text: 'The Colosseum never gets old! Every visit reveals something new about ancient Rome 🏛️',
     location: { name: 'Rome, Italy', coordinates: { lat: 41.8902, lon: 12.4922 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
   },
   {
     text: 'Island hopping in Thailand! Crystal clear waters and the most beautiful beaches 🏝️',
     location: { name: 'Phi Phi Islands, Thailand', coordinates: { lat: 7.7407, lon: 98.7784 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
   },
   {
     text: 'Coffee with a view in the Colombian mountains ☕️ The best way to start the day!',
     location: { name: 'Salento, Colombia', coordinates: { lat: 4.6378, lon: -75.5706 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1485686531765-ba63b07845a7?w=800',
   },
   {
     text: 'Exploring the ancient temples of Angkor Wat. The architecture is mind-blowing! 🛕',
     location: { name: 'Angkor Wat, Cambodia', coordinates: { lat: 13.4125, lon: 103.8670 } },
+    mediaUrl: 'https://images.unsplash.com/photo-1539650116574-75c0c6d71c49?w=800',
   },
 ];
 
@@ -142,7 +155,7 @@ async function seedUsers(bucket) {
         firstName: userData.firstName,
         lastName: userData.lastName,
         bio: userData.bio,
-        profilePhoto: null,
+        profilePhoto: userData.profilePhoto || null,
         location: {
           city: userData.location.city,
           country: userData.location.country,
@@ -233,7 +246,9 @@ async function seedPosts(bucket, users) {
       authorPhoto: author.profile.profilePhoto,
       content: {
         text: postData.text,
-        media: [],
+        media: postData.mediaUrl
+          ? [{ type: 'image', url: postData.mediaUrl, caption: '' }]
+          : [],
       },
       location: postData.location,
       likes: [],

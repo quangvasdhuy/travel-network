@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuth } from '../middleware/auth.js';
 import connectionService from '../services/connectionService.js';
 import userService from '../services/userService.js';
 
@@ -71,13 +71,14 @@ router.delete('/follow/:userId', authenticate, asyncHandler(async (req, res) => 
  * @query {number} [offset=0] - Results offset
  * @returns {Object} List of followers
  */
-router.get('/followers/:userId', asyncHandler(async (req, res) => {
+router.get('/followers/:userId', optionalAuth, asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { limit = 20, offset = 0 } = req.query;
 
   const followers = await connectionService.getFollowers(userId, {
     limit: parseInt(limit),
     offset: parseInt(offset),
+    currentUserId: req.user?.id || null,
   });
 
   res.status(200).json({
@@ -103,13 +104,14 @@ router.get('/followers/:userId', asyncHandler(async (req, res) => {
  * @query {number} [offset=0] - Results offset
  * @returns {Object} List of users being followed
  */
-router.get('/following/:userId', asyncHandler(async (req, res) => {
+router.get('/following/:userId', optionalAuth, asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const { limit = 20, offset = 0 } = req.query;
 
   const following = await connectionService.getFollowing(userId, {
     limit: parseInt(limit),
     offset: parseInt(offset),
+    currentUserId: req.user?.id || null,
   });
 
   res.status(200).json({

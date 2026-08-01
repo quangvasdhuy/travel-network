@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { User, MapPin } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { getProfilePhotoUrl } from '../utils/imageUtils';
 
 const UserCard = ({ user, showFollowButton = false, onFollowToggle, isFollowing = false }) => {
   return (
@@ -10,7 +9,7 @@ const UserCard = ({ user, showFollowButton = false, onFollowToggle, isFollowing 
         <Link to={`/profile/${user.username}`} className="flex items-center space-x-3 flex-1">
           {user.profile?.profilePhoto ? (
             <img
-              src={`${API_URL}${user.profile.profilePhoto}`}
+              src={getProfilePhotoUrl(user.profile.profilePhoto)}
               alt={user.username}
               className="w-12 h-12 rounded-full object-cover"
             />

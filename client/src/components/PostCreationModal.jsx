@@ -139,7 +139,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
     try {
       // Create FormData for file upload
       const submitData = new FormData();
-      submitData.append('content', formData.content);
+      submitData.append('text', formData.content);
       submitData.append('visibility', formData.visibility);
       
       if (formData.destinationId) {
