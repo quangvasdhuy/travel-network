@@ -10,6 +10,7 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -32,6 +33,10 @@ const RegisterPage = () => {
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    // Clear API error when user types
+    if (apiError) {
+      setApiError('');
     }
   };
 
@@ -88,6 +93,7 @@ const RegisterPage = () => {
     }
 
     setLoading(true);
+    setApiError('');
 
     // Prepare data for API (exclude confirmPassword)
     const { confirmPassword, ...registerData } = formData;
@@ -95,6 +101,32 @@ const RegisterPage = () => {
 
     if (result.success) {
       navigate('/dashboard');
+    } else {
+      // Handle validation errors with field details
+      if (result.details && Array.isArray(result.details)) {
+        // Map backend field errors to form errors
+        const backendErrors = {};
+        result.details.forEach(detail => {
+          // Extract field name from "body.fieldName" format
+          const fieldMatch = detail.field?.match(/body\.(.+)/);
+          const fieldName = fieldMatch ? fieldMatch[1] : detail.field;
+          
+          if (fieldName && formData.hasOwnProperty(fieldName)) {
+            backendErrors[fieldName] = detail.message;
+          }
+        });
+        
+        // If we have field-specific errors, show them
+        if (Object.keys(backendErrors).length > 0) {
+          setErrors(prevErrors => ({ ...prevErrors, ...backendErrors }));
+        } else {
+          // Otherwise show general error
+          setApiError(result.error || 'Registration failed. Please try again.');
+        }
+      } else {
+        // Display general API error
+        setApiError(result.error || 'Registration failed. Please try again.');
+      }
     }
 
     setLoading(false);
@@ -115,6 +147,21 @@ const RegisterPage = () => {
 
         {/* Register Form */}
         <div className="card p-8">
+          {/* API Error Alert */}
+          {apiError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-red-800">Registration Error</h3>
+                  <p className="mt-1 text-sm text-red-700">{apiError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>

@@ -66,9 +66,20 @@ export const AuthProvider = ({ children }) => {
       toast.success('Account created successfully!');
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const errorData = error.response?.data?.error;
+      let message = error.response?.data?.message || 'Registration failed';
+      
+      // Handle validation errors with details
+      if (errorData?.details && Array.isArray(errorData.details)) {
+        // Combine all field errors into one message
+        const fieldErrors = errorData.details.map(detail => detail.message).join('. ');
+        message = fieldErrors;
+      } else if (errorData?.message) {
+        message = errorData.message;
+      }
+      
       toast.error(message);
-      return { success: false, error: message };
+      return { success: false, error: message, details: errorData?.details };
     }
   };
 

@@ -9,6 +9,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
   const [formData, setFormData] = useState({
     emailOrUsername: '',
     password: '',
@@ -27,6 +28,10 @@ const LoginPage = () => {
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    // Clear API error when user types
+    if (apiError) {
+      setApiError('');
     }
   };
 
@@ -55,6 +60,7 @@ const LoginPage = () => {
     }
 
     setLoading(true);
+    setApiError('');
 
     const result = await login(formData);
 
@@ -63,6 +69,9 @@ const LoginPage = () => {
       setTimeout(() => {
         navigate('/dashboard');
       }, 100);
+    } else {
+      // Display API error
+      setApiError(result.error || 'Login failed. Please try again.');
     }
 
     setLoading(false);
@@ -83,6 +92,21 @@ const LoginPage = () => {
 
         {/* Login Form */}
         <div className="card p-8">
+          {/* API Error Alert */}
+          {apiError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-red-800">Login Error</h3>
+                  <p className="mt-1 text-sm text-red-700">{apiError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email/Username */}
             <div>
