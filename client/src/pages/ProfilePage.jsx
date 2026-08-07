@@ -5,6 +5,7 @@ import { userAPI, connectionAPI, postAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PostCard from '../components/PostCard';
 import UserCard from '../components/UserCard';
+import PostCreationModal from '../components/PostCreationModal';
 import toast from 'react-hot-toast';
 import { MapPin, Calendar, Users, Settings, Grid, UserCheck, UserPlus } from 'lucide-react';
 import { getProfilePhotoUrl } from '../utils/imageUtils';
@@ -20,6 +21,7 @@ const ProfilePage = () => {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [loadingTab, setLoadingTab] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
 
   const isOwnProfile = currentUser?.username === username;
 
@@ -181,6 +183,18 @@ const ProfilePage = () => {
     }));
   };
 
+  const handleEditPost = (post) => {
+    setEditingPost(post);
+  };
+
+  const handleUpdatePost = (updatedPost) => {
+    // Update post in list
+    setPosts(prev => prev.map(p => 
+      p.id === updatedPost.id ? updatedPost : p
+    ));
+    setEditingPost(null);
+  };
+
   if (loading) {
     return (
       <div className="container-custom py-8">
@@ -200,7 +214,18 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="container-custom py-8">
+    <>
+      {editingPost && (
+        <PostCreationModal
+          isOpen={true}
+          post={editingPost}
+          onClose={() => setEditingPost(null)}
+          onPostCreated={handleUpdatePost}
+          isEditing={true}
+        />
+      )}
+
+      <div className="container-custom py-8">
       <div className="max-w-4xl mx-auto">
         {/* Profile Header */}
         <div className="card p-8 mb-6">
@@ -393,6 +418,7 @@ const ProfilePage = () => {
                       post={post}
                       currentUserId={currentUser?.id}
                       onDelete={handleDeletePost}
+                      onEdit={handleEditPost}
                     />
                   ))
                 )}
@@ -458,6 +484,7 @@ const ProfilePage = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

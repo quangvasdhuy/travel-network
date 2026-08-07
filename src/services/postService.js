@@ -6,6 +6,8 @@
 import dbConnection from '../config/database.js';
 import { Post } from '../models/Post.js';
 import { PostQueries } from '../utils/queryHelpers.js';
+import destinationService from './destinationService.js';
+import couchbase from 'couchbase';
 
 /**
  * Create a new post
@@ -181,19 +183,53 @@ export async function updatePost(postId, userId, updates) {
     };
   }
 
-  // Define allowed fields to update
-  const allowedUpdates = ['content', 'tags', 'visibility', 'location'];
-
-  // Build mutation operations
+  // Build mutation operations using MutateInSpec
   const mutations = [];
 
-  for (const [field, value] of Object.entries(updates)) {
-    if (allowedUpdates.includes(field)) {
-      mutations.push({
-        opcode: 'dict_upsert',
-        path: field,
-        value: value,
-      });
+  // Handle text update (update content.text)
+  if (updates.text !== undefined) {
+    mutations.push(couchbase.MutateInSpec.upsert('content.text', updates.text));
+  }
+
+  // Handle content object (legacy support)
+  if (updates.content !== undefined) {
+    mutations.push(couchbase.MutateInSpec.upsert('content', updates.content));
+  }
+
+  // Handle tags
+  if (updates.tags !== undefined) {
+    mutations.push(couchbase.MutateInSpec.upsert('tags', updates.tags));
+  }
+
+  // Handle visibility
+  if (updates.visibility !== undefined) {
+    mutations.push(couchbase.MutateInSpec.upsert('visibility', updates.visibility));
+  }
+
+  // Handle location
+  if (updates.location !== undefined) {
+    mutations.push(couchbase.MutateInSpec.upsert('location', updates.location));
+  }
+
+  // Handle destinationId
+  if (updates.destinationId !== undefined) {
+    mutations.push(couchbase.MutateInSpec.upsert('destinationId', updates.destinationId));
+
+    // Resolve destination name if provided
+    if (updates.destinationId) {
+      try {
+        const destination = await destinationService.getDestinationById(updates.destinationId);
+        if (destination) {
+          mutations.push(couchbase.MutateInSpec.upsert('destinationName', destination.name));
+          mutations.push(couchbase.MutateInSpec.upsert('destinationCountry', destination.country));
+        }
+      } catch (err) {
+        console.error('Failed to resolve destination:', err.message);
+      }
+    } else {
+      // Clear destination fields if null
+      mutations.push(couchbase.MutateInSpec.upsert('destinationName', null));
+      mutations.push(couchbase.MutateInSpec.upsert('destinationCountry', null));
     }
   }
 
@@ -205,11 +241,11 @@ export async function updatePost(postId, userId, updates) {
   }
 
   // Add updated timestamp
-  mutations.push({
-    opcode: 'dict_upsert',
-    path: 'updatedAt',
-    value: new Date().toISOString(),
-  });
+  mutations.push(couchbase.MutateInSpec.upsert('updatedAt', new Date().toISOString()));
+
+  console.log('[updatePost] Post ID:', postId);
+  console.log('[updatePost] Updates received:', JSON.stringify(updates, null, 2));
+  console.log('[updatePost] Mutations to apply:', JSON.stringify(mutations, null, 2));
 
   try {
     await collection.mutateIn(Post.getKey(postId), mutations);
@@ -218,6 +254,8 @@ export async function updatePost(postId, userId, updates) {
     const result = await collection.get(Post.getKey(postId));
     return result.content;
   } catch (error) {
+    console.error('Error updating post:', error);
+    console.error('Mutations attempted:', JSON.stringify(mutations, null, 2));
     throw error;
   }
 }

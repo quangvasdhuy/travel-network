@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, MapPin, MoreVertical, Trash2, Send } from 'lucide-react';
+import { Heart, MessageCircle, MapPin, MoreVertical, Trash2, Send, Edit2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { postAPI } from '../services/api';
 import { getProfilePhotoUrl, getImageUrl } from '../utils/imageUtils';
 import toast from 'react-hot-toast';
 
-const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
+const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isLiked, setIsLiked] = useState(
     post.interactions?.likes?.includes(currentUserId) ?? false
@@ -126,9 +126,19 @@ const PostCard = ({ post, onDelete, onLikeToggle, currentUserId }) => {
             {showMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                 <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    if (onEdit) onEdit(post);
+                  }}
+                  className="w-full flex items-center space-x-2 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  <span>Edit Post</span>
+                </button>
+                <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="w-full flex items-center space-x-2 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg"
+                  className="w-full flex items-center space-x-2 px-4 py-3 text-red-600 hover:bg-red-50 rounded-b-lg"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>{isDeleting ? 'Deleting...' : 'Delete Post'}</span>

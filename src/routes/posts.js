@@ -41,6 +41,7 @@ const postSchemas = {
       tags: Joi.array().items(Joi.string()).optional(),
       visibility: Joi.string().valid('public', 'connections', 'private').optional(),
       location: Joi.object().optional(),
+      destinationId: Joi.string().optional().allow(null),
     }).min(1),
   },
 

@@ -16,6 +16,7 @@ const DashboardPage = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(true);
   const [userStats, setUserStats] = useState(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);  // For edit modal
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
@@ -44,7 +45,7 @@ const DashboardPage = () => {
     try {
       // Load feed, suggestions, and user stats in parallel
       const [feedResponse, suggestionsResponse, userProfileResponse] = await Promise.all([
-        postAPI.getFeed({ limit: 10, page: 1 }).catch(() => ({ data: { data: { posts: [] } } })),
+        postAPI.getFeed({ limit: 10, offset: 0 }).catch(() => ({ data: { data: { posts: [] } } })),
         connectionAPI.getSuggestions().catch(() => ({ data: { data: { suggestions: [] } } })),
         // Get current user's profile for stats
         user?.username ? userAPI.getProfile(user.username).catch(() => null) : null,
@@ -57,14 +58,24 @@ const DashboardPage = () => {
       if (followingPosts.length === 0) {
         console.log('[Dashboard] No following posts, loading popular posts immediately');
         setFeedMode('popular');
-        const popularResponse = await postAPI.getPopular({ limit: 10, page: 1 });
+        const popularResponse = await postAPI.getPopular({ limit: 10, offset: 0 });
         const popularPosts = popularResponse.data.data.posts || [];
-        setFeed(popularPosts);
+        
+        // Deduplicate posts by ID
+        const uniquePosts = Array.from(
+          new Map(popularPosts.map(post => [post.id, post])).values()
+        );
+        
+        setFeed(uniquePosts);
         setPopularPage(1);
         setHasMore(popularPosts.length === 10);
       } else {
-        // Có posts từ following
-        setFeed(followingPosts);
+        // Có posts từ following - deduplicate
+        const uniquePosts = Array.from(
+          new Map(followingPosts.map(post => [post.id, post])).values()
+        );
+        
+        setFeed(uniquePosts);
         setFeedMode('following');
         setPage(1);
         setHasMore(followingPosts.length === 10);
@@ -101,21 +112,44 @@ const DashboardPage = () => {
   const loadMorePosts = async () => {
     if (loadingMore || !hasMore) return;
 
+    console.log('[Dashboard] Loading more posts, page:', page, 'mode:', feedMode);
     setLoadingMore(true);
     try {
       if (feedMode === 'following') {
         // Tiếp tục load feed từ người follow
         const nextPage = page + 1;
-        const response = await postAPI.getFeed({ limit: 10, page: nextPage });
+        const limit = 10;
+        const offset = (nextPage - 1) * limit;  // Convert page to offset
+        
+        console.log('[Dashboard] Fetching page:', nextPage, 'offset:', offset);
+        const response = await postAPI.getFeed({ limit, offset });
         const newPosts = response.data.data.posts || [];
         
+        console.log('[Dashboard] Received', newPosts.length, 'posts from API');
+        
         if (newPosts.length > 0) {
-          setFeed(prev => [...prev, ...newPosts]);
+          // Deduplicate before appending
+          let uniqueCount = 0;
+          setFeed(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+            uniqueCount = uniqueNewPosts.length;
+            console.log('[Dashboard] After dedup:', uniqueCount, 'unique posts');
+            return [...prev, ...uniqueNewPosts];
+          });
+          
           setPage(nextPage);
-          setHasMore(newPosts.length === 10);
+          
+          // Only continue if we got unique posts AND API returned full page
+          if (uniqueCount === 0) {
+            console.log('[Dashboard] All posts were duplicates, stopping pagination');
+            setHasMore(false);
+          } else {
+            setHasMore(newPosts.length === 10);
+          }
         } else {
           // Hết posts từ following, chuyển sang popular
-          console.log('[Dashboard] Switching to popular posts');
+          console.log('[Dashboard] No more following posts, switching to popular');
           setFeedMode('popular');
           setPopularPage(1);
           // Load batch đầu tiên của popular posts
@@ -135,20 +169,38 @@ const DashboardPage = () => {
 
   const loadPopularPosts = async (pageNum) => {
     try {
+      const limit = 10;
+      const offset = (pageNum - 1) * limit;  // Convert page to offset
+      
+      console.log('[Dashboard] Loading popular posts, page:', pageNum, 'offset:', offset);
       // Gọi API lấy popular posts (public posts sorted by like + comment)
-      const response = await postAPI.getPopular({ limit: 10, page: pageNum });
+      const response = await postAPI.getPopular({ limit, offset });
       const newPosts = response.data.data.posts || [];
       
+      console.log('[Dashboard] Received', newPosts.length, 'popular posts');
+      
       if (newPosts.length > 0) {
+        let uniqueCount = 0;
         setFeed(prev => {
           // Deduplicate: chỉ thêm posts chưa có trong feed
           const existingIds = new Set(prev.map(p => p.id));
           const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+          uniqueCount = uniqueNewPosts.length;
+          console.log('[Dashboard] After dedup:', uniqueCount, 'unique popular posts');
           return [...prev, ...uniqueNewPosts];
         });
+        
         setPopularPage(pageNum);
-        setHasMore(newPosts.length === 10);
+        
+        // Stop if all were duplicates OR API returned less than full page
+        if (uniqueCount === 0 || newPosts.length < 10) {
+          console.log('[Dashboard] Stopping popular posts pagination');
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
       } else {
+        console.log('[Dashboard] No more popular posts available');
         setHasMore(false);
       }
     } catch (error) {
@@ -181,6 +233,18 @@ const DashboardPage = () => {
     setFeed(prev => prev.filter(p => p.id !== postId));
   };
 
+  const handleEditPost = (post) => {
+    setEditingPost(post);
+  };
+
+  const handleUpdatePost = (updatedPost) => {
+    // Update post in feed
+    setFeed(prev => prev.map(p => 
+      p.id === updatedPost.id ? updatedPost : p
+    ));
+    setEditingPost(null);
+  };
+
   const handlePostCreated = (newPost) => {
     setFeed(prev => [newPost, ...prev]);
   };
@@ -202,6 +266,16 @@ const DashboardPage = () => {
         onClose={() => setShowCreatePost(false)}
         onPostCreated={handlePostCreated}
       />
+
+      {editingPost && (
+        <PostCreationModal
+          isOpen={true}
+          post={editingPost}
+          onClose={() => setEditingPost(null)}
+          onPostCreated={handleUpdatePost}
+          isEditing={true}
+        />
+      )}
       
       <div className="container-custom py-8">
         <div className="grid lg:grid-cols-3 gap-6">
@@ -249,18 +323,32 @@ const DashboardPage = () => {
               </div>
             ) : (
               <>
-                {feed.map((post, index) => (
-                  <div
-                    key={post.id}
-                    ref={index === feed.length - 1 ? lastPostRef : null}
-                  >
-                    <PostCard
-                      post={post}
-                      currentUserId={user?.id}
-                      onDelete={handleDeletePost}
-                    />
-                  </div>
-                ))}
+                {feed
+                  .filter((post, index, self) => {
+                    // Extra safety: filter duplicates in render
+                    return self.findIndex(p => p.id === post.id) === index;
+                  })
+                  .map((post, index) => {
+                    // Ensure post has valid ID
+                    if (!post || !post.id) {
+                      console.warn('[Dashboard] Post missing ID:', post);
+                      return null;
+                    }
+                    
+                    return (
+                      <div
+                        key={post.id}
+                        ref={index === feed.length - 1 ? lastPostRef : null}
+                      >
+                        <PostCard
+                          post={post}
+                          currentUserId={user?.id}
+                          onDelete={handleDeletePost}
+                          onEdit={handleEditPost}
+                        />
+                      </div>
+                    );
+                  })}
                 
                 {loadingMore && (
                   <div className="flex justify-center py-8">

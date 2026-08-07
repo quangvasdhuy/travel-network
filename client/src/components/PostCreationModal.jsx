@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { postAPI, destinationAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { X, Image as ImageIcon, MapPin, Search, Upload } from 'lucide-react';
 
-const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
+const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = false }) => {
   const [loading, setLoading] = useState(false);
   const [searchingDestinations, setSearchingDestinations] = useState(false);
   const [destinationQuery, setDestinationQuery] = useState('');
@@ -19,6 +19,32 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [mediaPreviews, setMediaPreviews] = useState([]);
   const [errors, setErrors] = useState({});
+
+  // Load post data when editing
+  useEffect(() => {
+    if (isEditing && post) {
+      setFormData({
+        content: post.content?.text || '',
+        media: post.content?.media || [],
+        destinationId: post.destinationId || null,
+        visibility: post.visibility || 'public',
+      });
+      
+      // Set existing media previews
+      if (post.content?.media && post.content.media.length > 0) {
+        setMediaPreviews(post.content.media.map(m => m.url));
+      }
+      
+      // Set destination if exists (need full object with id for updates)
+      if (post.destinationId && post.destinationName) {
+        setSelectedDestination({
+          id: post.destinationId,
+          name: post.destinationName,
+          country: post.destinationCountry,
+        });
+      }
+    }
+  }, [isEditing, post]);
 
   if (!isOpen) return null;
 
@@ -39,10 +65,16 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
 
     setSearchingDestinations(true);
     try {
+      console.log('[PostModal] Searching destinations for:', query);
       const response = await destinationAPI.search(query);
-      setDestinationResults(response.data.data.destinations || []);
+      console.log('[PostModal] Search response:', response.data);
+      const destinations = response.data.data?.destinations || response.data.data || [];
+      console.log('[PostModal] Found destinations:', destinations.length);
+      setDestinationResults(destinations);
     } catch (error) {
-      console.error('Error searching destinations:', error);
+      console.error('[PostModal] Error searching destinations:', error);
+      console.error('[PostModal] Error response:', error.response?.data);
+      setDestinationResults([]);
     } finally {
       setSearchingDestinations(false);
     }
@@ -137,22 +169,45 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
     setLoading(true);
 
     try {
-      // Create FormData for file upload
-      const submitData = new FormData();
-      submitData.append('text', formData.content);
-      submitData.append('visibility', formData.visibility);
-      
-      if (formData.destinationId) {
-        submitData.append('destinationId', formData.destinationId);
+      if (isEditing) {
+        // Update existing post
+        const updateData = {
+          text: formData.content,
+          visibility: formData.visibility,
+        };
+        
+        if (formData.destinationId) {
+          updateData.destinationId = formData.destinationId;
+        }
+
+        const response = await postAPI.update(post.id, updateData);
+        toast.success('Post updated successfully!');
+        
+        if (onPostCreated) {
+          onPostCreated(response.data.data.post);
+        }
+      } else {
+        // Create new post
+        const submitData = new FormData();
+        submitData.append('text', formData.content);
+        submitData.append('visibility', formData.visibility);
+        
+        if (formData.destinationId) {
+          submitData.append('destinationId', formData.destinationId);
+        }
+
+        // Append media files
+        mediaFiles.forEach((file) => {
+          submitData.append('media', file);
+        });
+
+        const response = await postAPI.create(submitData);
+        toast.success('Post created successfully!');
+        
+        if (onPostCreated) {
+          onPostCreated(response.data.data.post);
+        }
       }
-
-      // Append media files
-      mediaFiles.forEach((file) => {
-        submitData.append('media', file);
-      });
-
-      const response = await postAPI.create(submitData);
-      toast.success('Post created successfully!');
       
       // Reset form
       setFormData({
@@ -165,14 +220,10 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
       setMediaPreviews([]);
       setSelectedDestination(null);
       
-      if (onPostCreated) {
-        onPostCreated(response.data.data.post);
-      }
-      
       onClose();
     } catch (error) {
-      console.error('Error creating post:', error);
-      toast.error(error.response?.data?.message || 'Failed to create post');
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} post:`, error);
+      toast.error(error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} post`);
     } finally {
       setLoading(false);
     }
@@ -207,7 +258,9 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Create Post</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {isEditing ? 'Edit Post' : 'Create Post'}
+          </h2>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -246,10 +299,11 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
           </div>
 
           {/* Media Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Photos (up to 5, max 50MB total)
-            </label>
+          {!isEditing && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Photos (up to 5, max 50MB total)
+              </label>
             
             {mediaPreviews.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
@@ -296,6 +350,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
               </label>
             )}
           </div>
+          )}
 
           {/* Destination Search */}
           <div>
@@ -385,10 +440,10 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated }) => {
               {loading ? (
                 <>
                   <LoadingSpinner size="small" />
-                  <span>Posting...</span>
+                  <span>{isEditing ? 'Updating...' : 'Posting...'}</span>
                 </>
               ) : (
-                <span>Post</span>
+                <span>{isEditing ? 'Update' : 'Post'}</span>
               )}
             </button>
             <button
