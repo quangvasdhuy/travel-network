@@ -12,6 +12,7 @@
     "db:seed": "node src/scripts/seedData.js",
     "db:seed-realistic": "node src/scripts/seedRealisticData.js",
     "db:clear": "node src/scripts/clearData.js",
+    "db:clear-all": "node src/scripts/clearAllData.js",
     "images:upload": "node src/scripts/uploadImagesToCloudinary.js"
   },
   "keywords": [

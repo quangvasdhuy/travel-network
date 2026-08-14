@@ -777,8 +777,55 @@ async function seedRealisticPosts(bucket, users, destinations, count = 100) {
     const postData = generatePost(user, destinations);
     const postId = uuidv4();
 
-    const likeCount = Math.floor(Math.random() * 200) + 5;
-    const commentCount = Math.floor(Math.random() * 50) + 1;
+    const likeCount = Math.floor(Math.random() * 16) + 10; // 10-25 likes
+    const commentCount = Math.floor(Math.random() * 7) + 4; // 4-10 comments
+    
+    // Generate actual likes from random users
+    const likedByUsers = [];
+    const shuffledUsers = [...users].sort(() => 0.5 - Math.random());
+    for (let l = 0; l < Math.min(likeCount, users.length); l++) {
+      if (shuffledUsers[l].id !== user.id) {
+        likedByUsers.push(shuffledUsers[l].id);
+      }
+    }
+    
+    // Generate actual comments from random users
+    const commentsList = [];
+    const commentTexts = [
+      "This is absolutely stunning! 😍",
+      "I've been there! Such an amazing place!",
+      "Added to my bucket list! Thanks for sharing!",
+      "Great photo! What camera did you use?",
+      "This looks incredible! How long did you stay?",
+      "Wow! I need to visit this place!",
+      "Beautiful capture! 📸",
+      "This is on my travel list for next year!",
+      "Looks amazing! Any tips for first-time visitors?",
+      "Gorgeous view! 🌅",
+      "I'm so jealous! This looks perfect!",
+      "What an adventure! Love your photos!",
+      "This made my day! Thank you for sharing!",
+      "Breathtaking! How was the weather?",
+      "Can't wait to go here someday!",
+      "This is goals! 🎯",
+      "Such a beautiful place! Thanks for the inspiration!",
+      "Your travel photos are always amazing!",
+      "Looks like an unforgettable experience!",
+      "What a view! How did you find this spot?",
+    ];
+    
+    for (let c = 0; c < commentCount; c++) {
+      const commenter = shuffledUsers[(c + likeCount) % shuffledUsers.length];
+      if (commenter.id !== user.id) {
+        commentsList.push({
+          id: uuidv4(),
+          userId: commenter.id,
+          username: commenter.username,
+          text: commentTexts[Math.floor(Math.random() * commentTexts.length)],
+          createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }
+    }
 
     const post = {
       id: postId,
@@ -792,13 +839,13 @@ async function seedRealisticPosts(bucket, users, destinations, count = 100) {
       },
       location: postData.location,
       interactions: {
-        likes: [],
-        comments: [],
+        likes: likedByUsers,
+        comments: commentsList,
       },
       stats: {
-        likeCount: likeCount,
-        commentCount: commentCount,
-        shareCount: Math.floor(Math.random() * 10),
+        likeCount: likedByUsers.length,
+        commentCount: commentsList.length,
+        shareCount: Math.floor(Math.random() * 5),
       },
       visibility: 'public',
       createdAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
@@ -822,9 +869,9 @@ async function seedRealisticConnections(bucket, users) {
   const collection = bucket.defaultCollection();
   let connectionCount = 0;
 
-  // Each user follows 5-15 random users (realistic social graph)
+  // Each user follows 15-25 random users (rich social graph)
   for (const user of users) {
-    const followCount = Math.floor(Math.random() * 10) + 5; // 5-15 follows
+    const followCount = Math.floor(Math.random() * 11) + 15; // 15-25 follows
     const shuffled = [...users].sort(() => 0.5 - Math.random());
     const toFollow = shuffled.filter(u => u.id !== user.id).slice(0, followCount);
 
@@ -1066,26 +1113,10 @@ async function recalculateUserStats(cluster, usersBucket, contentBucket, socialB
       // Update user stats
       const collection = usersBucket.defaultCollection();
       await collection.mutateIn(user.docId, [
-        {
-          opcode: 'dict_upsert',
-          path: 'stats.postCount',
-          value: postCount,
-        },
-        {
-          opcode: 'dict_upsert',
-          path: 'stats.followerCount',
-          value: followerCount,
-        },
-        {
-          opcode: 'dict_upsert',
-          path: 'stats.followingCount',
-          value: followingCount,
-        },
-        {
-          opcode: 'dict_upsert',
-          path: 'stats.tripCount',
-          value: tripCount,
-        },
+        couchbase.MutateInSpec.upsert('stats.postCount', postCount),
+        couchbase.MutateInSpec.upsert('stats.followerCount', followerCount),
+        couchbase.MutateInSpec.upsert('stats.followingCount', followingCount),
+        couchbase.MutateInSpec.upsert('stats.tripCount', tripCount),
       ]);
     } catch (error) {
       console.error(`  Error updating stats for user ${user.id}:`, error.message);
@@ -1105,14 +1136,14 @@ async function main() {
     const { cluster, usersBucket, contentBucket, socialBucket, tripsBucket } = 
       await connectToCouchbase();
 
-    console.log('🎯 Creating 100 high-quality, realistic records:\n');
+    console.log('🎯 Creating rich, high-quality data:\n');
 
-    // Seed data
-    const users = await seedRealisticUsers(usersBucket, 50); // 50 users
-    const destinations = await seedRealisticDestinations(tripsBucket); // 30 destinations ← Fixed!
-    await seedRealisticPosts(contentBucket, users, destinations, 100); // 100 posts
-    await seedRealisticConnections(socialBucket, users); // ~400 connections
-    await seedRealisticTrips(tripsBucket, users, destinations, 50); // 50 trips
+    // Seed data - INCREASED FOR MORE CONTENT
+    const users = await seedRealisticUsers(usersBucket, 100); // Increased from 50
+    const destinations = await seedRealisticDestinations(tripsBucket); // 30 destinations
+    await seedRealisticPosts(contentBucket, users, destinations, 500); // Increased from 100
+    await seedRealisticConnections(socialBucket, users, 2000); // Increased connections
+    await seedRealisticTrips(tripsBucket, users, destinations, 200); // Increased from 50
 
     console.log('════════════════════════════════════════════════════');
     console.log('✅ REALISTIC DATA SEEDING COMPLETED!');
@@ -1123,11 +1154,13 @@ async function main() {
     console.log('✓ User stats updated\n');
 
     console.log('�📊 Summary:');
-    console.log(`  • 50 Professional Users (travel bloggers, digital nomads, photographers)`);
+    console.log(`  • 100 Professional Users (travel bloggers, digital nomads, photographers)`);
     console.log(`  • 30 Top Destinations (Paris, Tokyo, Bali, etc.)`);
-    console.log(`  • 100 Authentic Posts (real travel stories)`);
-    console.log(`  • ~400 Realistic Connections (social graph)`);
-    console.log(`  • 50 Travel Trips (planning to completed)\n`);
+    console.log(`  • 500 Authentic Posts (5 posts per user - real travel stories)`);
+    console.log(`  • 2000+ Realistic Connections (20+ per user)`);
+    console.log(`  • 200 Travel Trips (2 trips per user - planning to completed)`);
+    console.log(`  • 5000+ Likes (10-20 per post)`);
+    console.log(`  • 2000+ Comments (4-10 per post)\n`);
 
     console.log('🔐 Login Credentials:');
     console.log('  • Username: Any username from the list above');
