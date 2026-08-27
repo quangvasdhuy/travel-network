@@ -1,0 +1,1398 @@
+<title>Travel Network trên Couchbase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+<style>
+:root{
+  --ground:#F1F3F2;
+  --surface:#FFFFFF;
+  --surface-2:#E6EBE9;
+  --ink:#0F1E25;
+  --ink-2:#54666E;
+  --ink-3:#7C8D94;
+  --line:#D2D9D7;
+  --line-strong:#B6C1BE;
+  --accent:#B93A31;
+  --accent-wash:#F6E7E5;
+  --teal:#0E6E78;
+  --teal-wash:#DFEDEE;
+  --ochre:#96690C;
+  --ochre-wash:#F3EBD8;
+  --code-bg:#0D1B22;
+  --code-ink:#D7E3E7;
+  --code-line:#1E323C;
+  --tok-kw:#FF8A7A;
+  --tok-str:#95D6A2;
+  --tok-num:#E9BB63;
+  --tok-com:#6C848D;
+  --tok-fn:#66C7CF;
+  --tok-var:#F0C36A;
+  --shadow:0 1px 2px rgba(15,30,37,.06), 0 8px 24px rgba(15,30,37,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0A141A;
+    --surface:#111F26;
+    --surface-2:#17282F;
+    --ink:#E4EDEF;
+    --ink-2:#94A8AF;
+    --ink-3:#71868E;
+    --line:#20343C;
+    --line-strong:#2E464F;
+    --accent:#F0685C;
+    --accent-wash:#26191A;
+    --teal:#3FB6BE;
+    --teal-wash:#0F262A;
+    --ochre:#E0B15E;
+    --ochre-wash:#241E12;
+    --code-bg:#071219;
+    --code-line:#16272F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0A141A;
+  --surface:#111F26;
+  --surface-2:#17282F;
+  --ink:#E4EDEF;
+  --ink-2:#94A8AF;
+  --ink-3:#71868E;
+  --line:#20343C;
+  --line-strong:#2E464F;
+  --accent:#F0685C;
+  --accent-wash:#26191A;
+  --teal:#3FB6BE;
+  --teal-wash:#0F262A;
+  --ochre:#E0B15E;
+  --ochre-wash:#241E12;
+  --code-bg:#071219;
+  --code-line:#16272F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;
+  line-height:1.68;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;font-weight:700;text-wrap:balance;line-height:1.15;margin:0}
+code,kbd,pre,.mono{font-family:"IBM Plex Mono",ui-monospace,"Cascadia Mono",monospace}
+a{color:var(--teal)}
+
+/* ---------- masthead ---------- */
+.masthead{
+  border-bottom:1px solid var(--line);
+  background:var(--surface);
+}
+.masthead-in{
+  max-width:1200px;margin:0 auto;padding:56px 28px 44px;
+  display:grid;gap:26px;
+}
+.kicker{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);font-weight:600;
+}
+.masthead h1{font-size:clamp(38px,6.2vw,68px);letter-spacing:-.015em}
+.masthead .lede{max-width:62ch;color:var(--ink-2);font-size:18px;margin:0}
+.factstrip{
+  display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:3px;
+  overflow:hidden;background:var(--ground);
+}
+.fact{flex:1 1 140px;padding:14px 18px;border-right:1px solid var(--line)}
+.fact:last-child{border-right:0}
+.fact b{display:block;font-family:"IBM Plex Mono",monospace;font-size:23px;font-weight:600;color:var(--ink);letter-spacing:-.02em}
+.fact span{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.09em}
+
+/* ---------- shell ---------- */
+.shell{max-width:1200px;margin:0 auto;padding:0 28px 120px;display:block}
+@media (min-width:1020px){
+  .shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:56px;align-items:start}
+}
+nav.toc{display:none}
+@media (min-width:1020px){
+  nav.toc{
+    display:block;position:sticky;top:0;max-height:100dvh;overflow-y:auto;
+    padding:44px 0 60px;font-size:13.5px;
+  }
+}
+nav.toc .toc-head{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-3);padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line);
+}
+nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+nav.toc a{
+  display:flex;gap:10px;text-decoration:none;color:var(--ink-2);
+  padding:5px 10px 5px 8px;border-left:2px solid transparent;border-radius:0 3px 3px 0;line-height:1.35;
+}
+nav.toc a:hover{color:var(--ink);background:var(--surface-2)}
+nav.toc a.on{color:var(--ink);border-left-color:var(--accent);background:var(--surface);font-weight:500}
+nav.toc a i{font-family:"IBM Plex Mono",monospace;font-style:normal;color:var(--ink-3);font-size:11.5px;padding-top:2px}
+
+main{padding-top:44px;min-width:0}
+section{scroll-margin-top:24px;margin-bottom:64px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;padding-bottom:12px;border-bottom:2px solid var(--ink)}
+.sec-num{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--accent)}
+.sec-head h2{font-size:clamp(26px,3.4vw,34px);letter-spacing:-.01em}
+.sec-intro{color:var(--ink-2);max-width:70ch;margin:18px 0 26px}
+h3{font-size:20px;margin:38px 0 12px;letter-spacing:-.005em}
+h3::before{content:"▍";color:var(--accent);margin-right:7px;font-size:15px;vertical-align:2px}
+h4{font-size:15.5px;margin:24px 0 8px;color:var(--ink)}
+p{margin:0 0 15px;max-width:72ch}
+ul,ol.body{margin:0 0 16px;padding-left:22px;max-width:72ch}
+li{margin-bottom:7px}
+li::marker{color:var(--ink-3)}
+strong{font-weight:600}
+p code,li code,td code,.inline{
+  font-size:.87em;background:var(--surface-2);border:1px solid var(--line);
+  padding:1px 5px;border-radius:3px;color:var(--ink);white-space:nowrap;
+}
+
+/* ---------- code ---------- */
+figure.code{margin:20px 0;border-radius:4px;overflow:hidden;background:var(--code-bg);box-shadow:var(--shadow)}
+figure.code figcaption{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:8px 14px;background:rgba(255,255,255,.045);border-bottom:1px solid var(--code-line);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8FA6AE;
+}
+figure.code figcaption em{font-style:normal;color:#5E767F;text-transform:none;letter-spacing:0;font-size:11.5px}
+figure.code pre{margin:0;padding:16px 18px;overflow-x:auto;color:var(--code-ink);font-size:13.4px;line-height:1.62}
+.tok-kw{color:var(--tok-kw);font-weight:500}
+.tok-str{color:var(--tok-str)}
+.tok-num{color:var(--tok-num)}
+.tok-com{color:var(--tok-com);font-style:italic}
+.tok-fn{color:var(--tok-fn)}
+.tok-var{color:var(--tok-var)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th{
+  text-align:left;padding:10px 14px;background:var(--surface-2);border-bottom:1px solid var(--line-strong);
+  font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:13px;
+  letter-spacing:.03em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap;
+}
+td{padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface-2) 45%,transparent)}
+td.k{font-family:"IBM Plex Mono",monospace;font-size:12.6px;white-space:nowrap;color:var(--teal)}
+td .num{font-variant-numeric:tabular-nums}
+
+/* ---------- callouts ---------- */
+.call{
+  margin:20px 0;padding:14px 18px;border-radius:3px;border-left:3px solid var(--teal);
+  background:var(--teal-wash);font-size:14.8px;
+}
+.call.warn{border-left-color:var(--accent);background:var(--accent-wash)}
+.call.qa{border-left-color:var(--ochre);background:var(--ochre-wash)}
+.call p:last-child{margin-bottom:0}
+.call .lbl{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;margin-bottom:5px;font-weight:600;color:var(--teal);
+}
+.call.warn .lbl{color:var(--accent)}
+.call.qa .lbl{color:var(--ochre)}
+
+/* ---------- diagrams ---------- */
+.diagram{
+  margin:24px 0;padding:22px;border:1px solid var(--line);border-radius:4px;
+  background:var(--surface);overflow-x:auto;
+}
+.diagram .cap{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:16px;
+}
+.node{
+  border:1px solid var(--line-strong);border-radius:3px;background:var(--surface-2);
+  padding:9px 12px;font-size:13px;line-height:1.35;
+}
+.node b{display:block;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:14px}
+.node small{color:var(--ink-3);font-size:11.5px;font-family:"IBM Plex Mono",monospace}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.chain .node{flex:1 1 140px;border-radius:0;border-right-width:0}
+.chain .node:first-child{border-radius:3px 0 0 3px}
+.chain .node:last-child{border-radius:0 3px 3px 0;border-right-width:1px}
+.arrow{align-self:center;color:var(--accent);font-size:16px;padding:0 4px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{
+  border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:16px 18px;
+}
+.card h4{margin:0 0 6px}
+.card p{font-size:14px;color:var(--ink-2);margin:0}
+.card .tagnum{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);
+  letter-spacing:.1em;display:block;margin-bottom:6px;
+}
+svg{max-width:100%;height:auto;display:block}
+.svgwrap{overflow-x:auto}
+
+/* ---------- misc ---------- */
+.split{display:grid;gap:18px;grid-template-columns:1fr}
+@media (min-width:760px){.split{grid-template-columns:1fr 1fr}}
+.pill{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11px;padding:2px 8px;
+  border-radius:999px;border:1px solid var(--line-strong);color:var(--ink-2);margin:0 4px 4px 0;
+}
+.pill.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.pill.off{opacity:.55}
+details{border:1px solid var(--line);border-radius:4px;background:var(--surface);margin:0 0 10px;padding:0}
+details summary{
+  cursor:pointer;padding:12px 16px;font-weight:600;font-size:15px;list-style:none;
+  display:flex;gap:10px;align-items:baseline;
+}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"?";font-family:"IBM Plex Mono",monospace;color:var(--accent);font-weight:600}
+details[open] summary{border-bottom:1px solid var(--line)}
+details .body{padding:14px 16px 4px}
+details .body p{font-size:14.7px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer{
+  border-top:1px solid var(--line);margin-top:20px;padding:28px 0 0;color:var(--ink-3);font-size:13.5px;
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="kicker">Đồ án môn Cơ sở dữ liệu · Tài liệu kỹ thuật</div>
+    <h1>Travel Network trên Couchbase</h1>
+    <p class="lede">Mạng xã hội cho du khách, xây trên một cơ sở dữ liệu tài liệu phân tán. Tài liệu này giải thích Couchbase hoạt động ra sao, vì sao mô hình dữ liệu của đồ án được thiết kế như vậy, và mọi câu truy vấn N1QL trong mã nguồn làm gì.</p>
+    <div class="factstrip">
+      <div class="fact"><b>4</b><span>bucket</span></div>
+      <div class="fact"><b>5</b><span>loại document</span></div>
+      <div class="fact"><b>23</b><span>index GSI</span></div>
+      <div class="fact"><b>2</b><span>đường truy cập</span></div>
+      <div class="fact"><b>1024</b><span>vBucket / bucket</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="toc" aria-label="Mục lục">
+    <div class="toc-head">Mục lục</div>
+    <ol id="tocList"></ol>
+  </nav>
+
+  <main>
+
+  <!-- ============ 1 ============ -->
+  <section id="s1">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Bài toán và lý do rời bỏ bảng</h2></div>
+    <p class="sec-intro">Trước khi nói Couchbase làm được gì, phải nói rõ dữ liệu của một mạng xã hội du lịch trông như thế nào — vì chính hình dạng dữ liệu quyết định lựa chọn công nghệ.</p>
+
+    <h3>Dữ liệu thật của Travel Network</h3>
+    <p>Ứng dụng có năm thực thể: <strong>người dùng</strong>, <strong>bài viết</strong>, <strong>chuyến đi</strong>, <strong>điểm đến</strong> và <strong>quan hệ theo dõi</strong>. Nhìn kỹ từng cái sẽ thấy chúng đều <em>không phẳng</em>:</p>
+    <ul>
+      <li>Một <strong>người dùng</strong> có hồ sơ lồng nhau (<code>profile.location.coordinates.lat</code>), một mảng sở thích, một mảng phong cách du lịch, một khối tuỳ chọn riêng tư và một khối thống kê.</li>
+      <li>Một <strong>chuyến đi</strong> có mảng điểm đến, mảng lịch trình theo ngày mà mỗi ngày lại có mảng hoạt động, một khối ngân sách có bảng chi tiết, và mảng người đồng hành.</li>
+      <li>Một <strong>bài viết</strong> có mảng media, mảng thẻ, mảng nhắc tên, mảng lượt thích và mảng bình luận.</li>
+    </ul>
+
+    <h3>Nếu làm bằng quan hệ</h3>
+    <p>Chuẩn hoá đến 3NF, cấu trúc trên nở ra thành khoảng mười lăm bảng:</p>
+    <div class="diagram">
+      <div class="cap">Ước lượng lược đồ quan hệ tương đương</div>
+      <div class="row">
+        <span class="pill">users</span><span class="pill">user_profiles</span><span class="pill">user_interests</span><span class="pill">user_travel_styles</span><span class="pill">privacy_settings</span><span class="pill">trips</span><span class="pill">trip_destinations</span><span class="pill">itinerary_days</span><span class="pill">itinerary_activities</span><span class="pill">trip_participants</span><span class="pill">budget_breakdown</span><span class="pill">posts</span><span class="pill">post_media</span><span class="pill">post_tags</span><span class="pill">post_likes</span><span class="pill">post_comments</span><span class="pill">destinations</span><span class="pill">destination_tags</span><span class="pill">connections</span>
+      </div>
+    </div>
+    <p>Hệ quả: để dựng <em>một</em> thẻ bài viết trên bảng tin — nội dung, ảnh, thẻ, số like, tên và ảnh đại diện tác giả — cần JOIN sáu bảng. Bảng tin hai mươi bài là hai mươi lần lắp ráp đó. Còn khi muốn thêm trường mới cho chuyến đi thì phải <code>ALTER TABLE</code> trên bảng có thể đã hàng triệu dòng.</p>
+
+    <div class="call">
+      <span class="lbl">Luận điểm cốt lõi</span>
+      <p>Ứng dụng đọc và ghi dữ liệu theo <strong>đơn vị "một bài viết", "một chuyến đi"</strong>. Cơ sở dữ liệu quan hệ bắt ta xé đơn vị đó thành nhiều bảng khi ghi rồi ghép lại khi đọc. Cơ sở dữ liệu tài liệu cho phép lưu đúng đơn vị mà ứng dụng dùng — một document JSON, một lần đọc.</p>
+    </div>
+
+    <h3>Cái giá phải trả — nói thẳng</h3>
+    <p>Đổi lại, ta mất ba thứ mà hệ quản trị quan hệ cho không: ràng buộc khoá ngoại, lược đồ do máy chủ ép buộc, và JOIN tuỳ ý rẻ tiền. Toàn bộ tài liệu này, đặc biệt là mục <a href="#s3">03</a> và <a href="#s8">08</a>, là câu chuyện về cách đồ án trả cái giá đó.</p>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section id="s2">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Couchbase hoạt động như thế nào</h2></div>
+    <p class="sec-intro">Couchbase là một cơ sở dữ liệu tài liệu JSON, phân tán, ưu tiên bộ nhớ. Bốn ý dưới đây là bốn ý cần nắm để hiểu mọi thứ còn lại.</p>
+
+    <h3>2.1 · Một cụm, sáu dịch vụ, mở rộng độc lập</h3>
+    <p>Một <strong>cluster</strong> gồm nhiều <strong>node</strong>. Mỗi node bật một hoặc nhiều <strong>service</strong>. Đây là điểm khác biệt kiến trúc lớn nhất của Couchbase: các dịch vụ tách rời và mở rộng độc lập — gọi là <em>Multi-Dimensional Scaling</em>.</p>
+    <div class="diagram">
+      <div class="cap">Các dịch vụ trong một cụm Couchbase</div>
+      <div class="grid4">
+        <div class="node"><b>Data (KV)</b><small>lưu &amp; phục vụ document theo khoá</small></div>
+        <div class="node"><b>Query</b><small>phân tích &amp; thực thi N1QL</small></div>
+        <div class="node"><b>Index (GSI)</b><small>giữ chỉ mục thứ cấp</small></div>
+        <div class="node"><b>Search (FTS)</b><small>tìm kiếm toàn văn</small></div>
+        <div class="node"><b>Analytics</b><small>truy vấn phân tích tách biệt</small></div>
+        <div class="node"><b>Eventing</b><small>hàm chạy khi dữ liệu đổi</small></div>
+      </div>
+    </div>
+    <p>Nếu bảng tin bị nghẽn ở khâu truy vấn, ta thêm node chạy riêng Query service mà không đụng vào tầng lưu trữ. Trong đồ án, cả sáu chạy trên một node duy nhất — nhưng khi bảo vệ nên nói rõ rằng đó là lựa chọn của môi trường phát triển, không phải giới hạn của công nghệ. Đồ án hiện dùng hai dịch vụ: <strong>Data</strong> và <strong>Query + Index</strong>.</p>
+
+    <h3>2.2 · Bucket → Scope → Collection → Document</h3>
+    <p>Từ Couchbase 7.0, dữ liệu được tổ chức bốn tầng, ánh xạ gần như một–một sang thế giới quan hệ:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Quan hệ</th><th>Couchbase</th><th>Trong đồ án</th></tr></thead>
+        <tbody>
+          <tr><td>Database</td><td class="k">Bucket</td><td>4 bucket: <code>travel_users</code>, <code>travel_content</code>, <code>travel_trips</code>, <code>travel_social</code></td></tr>
+          <tr><td>Schema</td><td class="k">Scope</td><td><code>_default</code></td></tr>
+          <tr><td>Table</td><td class="k">Collection</td><td><code>_default</code> — phân loại bằng trường <code>type</code></td></tr>
+          <tr><td>Row</td><td class="k">Document</td><td>một JSON, tối đa 20 MB</td></tr>
+          <tr><td>Column</td><td class="k">Field</td><td>tự do, lồng nhau tuỳ ý</td></tr>
+          <tr><td>Primary key</td><td class="k">Document key</td><td><code>user::a1b2…</code>, đọc bằng <code>META().id</code></td></tr>
+          <tr><td>Foreign key</td><td class="k">— không có —</td><td>tham chiếu do tầng service tự giữ</td></tr>
+          <tr><td>Index</td><td class="k">GSI</td><td>23 index, xem mục <a href="#s6">06</a></td></tr>
+          <tr><td>Partition</td><td class="k">vBucket</td><td>1024 mảnh mỗi bucket, tự động</td></tr>
+          <tr><td>Trigger</td><td class="k">Eventing function</td><td>chưa dùng</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="call warn">
+      <span class="lbl">Nhận xét thiết kế</span>
+      <p>Đồ án sinh ra theo lối cũ: mỗi loại dữ liệu một bucket, tất cả nằm trong collection <code>_default</code>. Cách "chuẩn 7.x" là <strong>một</strong> bucket <code>travel_network</code> với các collection <code>users</code>, <code>posts</code>, <code>trips</code>, <code>destinations</code>, <code>connections</code>. Nêu chủ động điểm này khi bảo vệ — nó cho thấy bạn hiểu cả hai thế hệ mô hình chứ không chỉ làm theo hướng dẫn.</p>
+    </div>
+
+    <h3>2.3 · vBucket: dữ liệu được rải đi đâu</h3>
+    <p>Couchbase không băm khoá thẳng vào node. Nó chèn một tầng trung gian gọi là <strong>vBucket</strong> (virtual bucket). Mỗi bucket luôn có đúng 1024 vBucket, bất kể cụm có mấy node.</p>
+    <div class="diagram">
+      <div class="cap">Đường đi của một khoá tới node</div>
+      <div class="svgwrap">
+      <svg viewBox="0 0 760 190" role="img" aria-label="Sơ đồ băm khoá thành vBucket rồi ánh xạ tới node">
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="var(--accent)"/>
+          </marker>
+        </defs>
+        <rect x="4" y="52" width="170" height="46" rx="3" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+        <text x="89" y="72" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink)">post::9f3c…</text>
+        <text x="89" y="88" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-3)">document key</text>
+
+        <line x1="178" y1="75" x2="212" y2="75" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#ar)"/>
+        <rect x="216" y="52" width="150" height="46" rx="3" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+        <text x="291" y="72" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink)">CRC32(key)</text>
+        <text x="291" y="88" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-3)">mod 1024</text>
+
+        <line x1="370" y1="75" x2="404" y2="75" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#ar)"/>
+        <rect x="408" y="52" width="140" height="46" rx="3" fill="var(--accent-wash)" stroke="var(--accent)"/>
+        <text x="478" y="72" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink)">vBucket 731</text>
+        <text x="478" y="88" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--ink-3)">1 trong 1024</text>
+
+        <line x1="552" y1="75" x2="586" y2="75" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#ar)"/>
+        <rect x="590" y="24" width="164" height="34" rx="3" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+        <text x="672" y="45" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">Node B · active</text>
+        <rect x="590" y="66" width="164" height="34" rx="3" fill="var(--surface)" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <text x="672" y="87" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink-2)">Node C · replica</text>
+        <rect x="590" y="108" width="164" height="34" rx="3" fill="var(--surface)" stroke="var(--line)" stroke-dasharray="3 3"/>
+        <text x="672" y="129" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink-2)">Node A · replica</text>
+
+        <text x="380" y="168" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-3)">cluster map do SDK giữ · client đi thẳng tới node, không qua router</text>
+      </svg>
+      </div>
+    </div>
+    <p>Bảng ánh xạ vBucket → node gọi là <strong>cluster map</strong>, và điểm mấu chốt là <em>chính SDK phía client giữ bản đồ này</em>. Khi <code>collection.get('post::9f3c')</code> chạy, thư viện tự tính vBucket, tra bản đồ, mở kết nối thẳng tới đúng node giữ dữ liệu. Không có tiến trình định tuyến trung gian, không có thêm chặng mạng.</p>
+    <p>Khi thêm hoặc bớt node, cụm <strong>rebalance</strong>: các vBucket được di chuyển sang node mới, cluster map được phát lại cho mọi client, ứng dụng vẫn chạy. Vì số vBucket cố định ở 1024, việc di chuyển là dời nguyên khối chứ không phải băm lại toàn bộ khoá.</p>
+
+    <h3>2.4 · Ưu tiên bộ nhớ, ghi đĩa bất đồng bộ</h3>
+    <p>Mỗi node Data có một <strong>managed cache</strong>. Một lệnh ghi đi vào RAM và được xác nhận ngay; sau đó Couchbase mới bất đồng bộ ghi xuống đĩa và nhân bản sang các replica. Đọc trúng cache thì không chạm đĩa. Đó là lý do độ trễ KV tính bằng phần nghìn giây.</p>
+    <div class="diagram">
+      <div class="cap">Vòng đời một lệnh ghi</div>
+      <div class="chain">
+        <div class="node"><b>1 · SDK</b><small>upsert(key, doc)</small></div>
+        <div class="node"><b>2 · Managed cache</b><small>ghi RAM → ack ngay</small></div>
+        <div class="node"><b>3 · DCP</b><small>phát dòng thay đổi</small></div>
+        <div class="node"><b>4 · Đĩa + Replica</b><small>persist &amp; nhân bản</small></div>
+        <div class="node"><b>5 · Index</b><small>GSI cập nhật</small></div>
+      </div>
+    </div>
+    <p><strong>DCP</strong> — Database Change Protocol — là dòng chảy nội bộ mang mọi thay đổi tới replica, tới Index service, tới Search và tới sao chép liên cụm. Điều này giải thích một hành vi rất quan trọng ở mục <a href="#s7">07</a>: index cập nhật <em>sau</em> khi lệnh ghi đã trả về thành công.</p>
+    <p>Nếu cần bảo đảm mạnh hơn, SDK cho phép khai báo <strong>durability</strong>: <code>Majority</code> (đa số node đã nhận trong RAM), <code>MajorityAndPersistToActive</code>, <code>PersistToMajority</code>. Đổi độ trễ lấy độ an toàn — đồ án dùng mặc định, phù hợp cho dữ liệu mạng xã hội.</p>
+
+    <h3>2.5 · CAS — khoá lạc quan có sẵn</h3>
+    <p>Mỗi document mang một số 64-bit gọi là <strong>CAS</strong> (Compare-And-Swap), đổi sau mỗi lần sửa. Truyền CAS cũ vào lệnh <code>replace</code>; nếu ai đó đã sửa document trong lúc đó, CAS lệch và lệnh ghi bị từ chối với <code>CasMismatchError</code>. Đây là điều khiển đồng thời lạc quan, dựng sẵn trong hạ tầng — mục <a href="#s8">08</a> sẽ chỉ ra chỗ trong đồ án lẽ ra nên dùng CAS mà chưa dùng.</p>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section id="s3">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Mô hình dữ liệu của đồ án</h2></div>
+    <p class="sec-intro">Phần này là trọng tâm học thuật: không có lược đồ do máy chủ ép, thì thiết kế nằm ở <em>hình dạng document</em> và <em>quy tắc đặt khoá</em>.</p>
+
+    <h3>3.1 · Bốn bucket và trường phân loại</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Bucket</th><th>Loại document</th><th>Mẫu khoá</th><th>Vì sao tách riêng</th></tr></thead>
+        <tbody>
+          <tr><td class="k">travel_users</td><td><code>user</code></td><td class="k">user::{uuid}</td><td>dữ liệu nóng nhất, mọi request xác thực đều đọc</td></tr>
+          <tr><td class="k">travel_content</td><td><code>post</code></td><td class="k">post::{uuid}</td><td>số lượng lớn nhất, ghi nhiều nhất</td></tr>
+          <tr><td class="k">travel_trips</td><td><code>trip</code>, <code>destination</code></td><td class="k">trip::{uuid}<br>destination::{cc}::{slug}</td><td>chuyến đi luôn tra cứu kèm điểm đến</td></tr>
+          <tr><td class="k">travel_social</td><td><code>connection</code></td><td class="k">connection::{a}::{b}</td><td>document nhỏ, số lượng khổng lồ, truy cập theo mẫu riêng</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Vì một collection chứa nhiều loại document, mọi document đều mang trường <code>type</code>. Đây là mẫu thiết kế kinh điển của Couchbase và nó có hệ quả trực tiếp lên index: tất cả index thứ cấp trong đồ án đều là <strong>partial index</strong> với mệnh đề <code>WHERE type = '…'</code>, nên index chỉ chứa đúng những document liên quan.</p>
+
+    <h3>3.2 · Thiết kế khoá — nơi ẩn giấu nhiều thiết kế nhất</h3>
+    <p>Trong Couchbase, khoá document là chỉ mục nhanh nhất mà bạn có: tra theo khoá là O(1), không cần index, không đụng tới Query service. Đồ án dùng ba chiến lược khoá khác nhau, mỗi cái vì một lý do.</p>
+
+    <div class="grid3">
+      <div class="card">
+        <span class="tagnum">Chiến lược A</span>
+        <h4>Khoá thay thế</h4>
+        <p><code>user::{uuid}</code>, <code>post::{uuid}</code>, <code>trip::{uuid}</code>. UUID sinh ở tầng ứng dụng, tiền tố cho biết loại. Đơn giản, không bao giờ trùng, phân tán đều trên 1024 vBucket.</p>
+      </div>
+      <div class="card">
+        <span class="tagnum">Chiến lược B</span>
+        <h4>Khoá tự nhiên</h4>
+        <p><code>destination::VN::ha-noi</code>. Ghép mã quốc gia với slug tên. Đọc được bằng mắt, ổn định, và cho phép tra một điểm đến mà không cần biết UUID nào cả.</p>
+      </div>
+      <div class="card">
+        <span class="tagnum">Chiến lược C</span>
+        <h4>Khoá ghép quan hệ</h4>
+        <p><code>connection::{followerId}::{followingId}</code>. Bản thân khoá <em>chính là</em> quan hệ. Đây là điểm sáng nhất của mô hình.</p>
+      </div>
+    </div>
+
+    <h4>Vì sao khoá ghép cho quan hệ theo dõi là một quyết định tốt</h4>
+    <p>Câu hỏi "A có theo dõi B không?" xuất hiện ở hầu hết mọi màn hình. Trong mô hình quan hệ, đó là một <code>SELECT</code> trên bảng <code>connections</code> với index trên hai cột. Ở đây, câu trả lời nằm ngay trong khoá:</p>
+
+    <figure class="code">
+      <figcaption>connectionService.js <em>· kiểm tra quan hệ không cần index</em></figcaption>
+<pre><code class="lang-js">// Dùng key lookup thay vì N1QL để tránh phụ thuộc vào index
+export async function isFollowing(followerId, followingId) {
+  try {
+    const collection = dbConnection.getBucket('social').defaultCollection;
+    await collection.get(Connection.getKey(followerId, followingId));
+    return true;                                   // document tồn tại → có theo dõi
+  } catch (error) {
+    if (error.name === 'DocumentNotFoundError') return false;
+    return await ConnectionQueries.isFollowing(followerId, followingId).catch(() => false);
+  }
+}</code></pre>
+    </figure>
+
+    <p>Ba lợi ích cộng dồn từ một quyết định đặt khoá:</p>
+    <ol class="body">
+      <li><strong>Tra cứu O(1).</strong> Một chặng mạng tới đúng node, không quét index, không qua Query service.</li>
+      <li><strong>Ràng buộc duy nhất miễn phí.</strong> <code>collection.insert()</code> ném <code>DocumentExistsError</code> nếu khoá đã tồn tại — tương đương một <code>UNIQUE(follower_id, following_id)</code> mà không cần khai báo gì.</li>
+      <li><strong>Huỷ theo dõi không cần tìm.</strong> <code>collection.remove(key)</code>, không cần <code>SELECT</code> trước để lấy id.</li>
+    </ol>
+    <div class="call">
+      <span class="lbl">Điểm nhấn khi thuyết trình</span>
+      <p>Đây là câu chốt đắt giá nhất của bài: <em>"trong Couchbase, khoá document không chỉ để định danh — nó là một quyết định thiết kế chỉ mục."</em> Bốn thao tác quan hệ xã hội (theo dõi, huỷ theo dõi, kiểm tra, chống trùng) đều được giải bằng cách đặt tên khoá cho khéo.</p>
+    </div>
+
+    <h3>3.3 · Hình dạng document</h3>
+    <figure class="code">
+      <figcaption>travel_users · khoá <em>user::a1b2c3d4</em></figcaption>
+<pre><code class="lang-json">{
+  "id": "a1b2c3d4-…", "type": "user",
+  "email": "an@example.com", "username": "an_travels",
+  "passwordHash": "$2a$10$…",
+  "profile": {
+    "firstName": "An", "lastName": "Nguyễn", "bio": "Đi để viết.",
+    "profilePhoto": "https://res.cloudinary.com/…",
+    "location": { "city": "Đà Nẵng", "country": "Việt Nam",
+                  "coordinates": { "lat": 16.05, "lon": 108.2 } }
+  },
+  "interests": ["hiking", "photography", "food"],
+  "preferences": {
+    "travelStyle": ["adventure", "budget"],
+    "privacySettings": { "profileVisibility": "public", "showEmail": false }
+  },
+  "stats": { "tripCount": 4, "postCount": 27, "followerCount": 152, "followingCount": 88 },
+  "status": "active",
+  "createdAt": "2026-03-11T08:20:00.000Z"
+}</code></pre>
+    </figure>
+    <p>Toàn bộ hồ sơ — vốn là bốn, năm bảng trong mô hình quan hệ — nằm trong một document, lấy về bằng một lần đọc theo khoá. Middleware <code>authenticate</code> làm đúng việc đó ở mỗi request.</p>
+
+    <figure class="code">
+      <figcaption>travel_content · khoá <em>post::9f3c…</em> · chú ý các trường phi chuẩn hoá</figcaption>
+<pre><code class="lang-json">{
+  "id": "9f3c…", "type": "post",
+  "authorId": "a1b2c3d4-…",
+  "authorUsername": "an_travels",                  // ← sao chép từ user
+  "authorPhoto": "https://res.cloudinary.com/…",   // ← sao chép từ user
+  "postType": "photo",
+  "content": { "text": "Bình minh ở Hội An.",
+               "media": [{ "type": "image", "url": "…", "caption": "6h sáng" }] },
+  "tripId": "7b21…",
+  "destinationId": "destination::VN::hoi-an",      // ← khoá đầy đủ, không phải uuid
+  "destinationName": "Hội An",                     // ← sao chép từ destination
+  "tags": ["sunrise", "vietnam"],
+  "visibility": "public",
+  "stats": { "viewCount": 340, "likeCount": 51, "commentCount": 7 },
+  "interactions": {
+    "likes": ["u1", "u2", "…"],
+    "comments": [{ "id": "c1", "userId": "u2", "username": "mai", "text": "Đẹp quá!",
+                   "createdAt": "2026-04-02T…" }]
+  },
+  "createdAt": "2026-04-01T22:14:00.000Z"
+}</code></pre>
+    </figure>
+
+    <div class="call warn">
+      <span class="lbl">Cạm bẫy phải nhớ</span>
+      <p><code>destinationId</code> trên bài viết và chuyến đi lưu <strong>khoá document đầy đủ</strong> (<code>destination::VN::hoi-an</code>), không phải UUID trần như các thực thể khác. Nhờ vậy <code>collection.mutateIn(destinationId, …)</code> gọi thẳng được mà không cần ghép tiền tố — nhưng nó là ngoại lệ duy nhất trong toàn hệ thống, và là chỗ dễ nhầm nhất khi viết code mới.</p>
+    </div>
+
+    <figure class="code">
+      <figcaption>travel_trips · hai loại document trong cùng một bucket</figcaption>
+<pre><code class="lang-json">// trip::7b21…
+{ "id": "7b21…", "type": "trip", "userId": "a1b2c3d4-…",
+  "title": "Xuyên Việt 14 ngày", "startDate": "2026-06-01", "endDate": "2026-06-14",
+  "status": "planning", "visibility": "public",
+  "destinations": [ { "destinationId": "destination::VN::ha-noi", "name": "Hà Nội",
+                      "arrivalDate": "2026-06-01" },
+                    { "destinationId": "destination::VN::hoi-an", "name": "Hội An" } ],
+  "itinerary": [ { "day": 1, "date": "2026-06-01",
+                   "activities": ["Phố cổ", "Chợ đêm"], "notes": "" } ],
+  "budget": { "total": 1200, "currency": "USD",
+              "breakdown": { "accommodation": 400, "food": 300 } },
+  "participants": [ { "userId": "u2", "username": "mai", "status": "confirmed" } ],
+  "tags": ["backpacking", "solo"],
+  "stats": { "viewCount": 88, "likeCount": 12 } }
+
+// destination::VN::hoi-an
+{ "id": "e91a…", "type": "destination", "name": "Hội An", "slug": "hoi-an",
+  "country": "Việt Nam", "countryCode": "VN",
+  "coordinates": { "lat": 15.88, "lon": 108.33 },
+  "categories": ["cultural", "beach"], "tags": ["romantic", "family-friendly"],
+  "climate": { "type": "tropical", "bestMonths": [2, 3, 4] },
+  "stats": { "tripCount": 41, "postCount": 128, "viewCount": 900, "rating": 4.7 } }
+
+// connection::a1b2c3d4::b5c6d7e8   ← khoá đã chứa toàn bộ quan hệ
+{ "type": "connection",
+  "followerId": "a1b2c3d4", "followerUsername": "an_travels",
+  "followingId": "b5c6d7e8", "followingUsername": "mai_le",
+  "status": "active", "createdAt": "2026-03-20T…" }</code></pre>
+    </figure>
+
+    <h3>3.4 · Quan hệ được biểu diễn ra sao</h3>
+    <p>Không có khoá ngoại, nên mỗi quan hệ phải chọn <em>một trong ba cách nhúng</em>. Đồ án dùng đủ cả ba, và lý do chọn mới là phần đáng nói:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Quan hệ</th><th>Cách biểu diễn</th><th>Lý do</th></tr></thead>
+        <tbody>
+          <tr><td>post → author</td><td>tham chiếu <code>authorId</code> + sao chép tên/ảnh</td><td>người dùng sống lâu, đổi độc lập; nhưng bảng tin cần tên tác giả ngay</td></tr>
+          <tr><td>post → comments</td><td><strong>nhúng</strong> trong <code>interactions.comments</code></td><td>bình luận không có ý nghĩa ngoài bài viết; luôn đọc cùng nhau</td></tr>
+          <tr><td>post → likes</td><td><strong>nhúng</strong> mảng userId</td><td>cần biết "tôi đã thích chưa" trong cùng lần đọc</td></tr>
+          <tr><td>trip → itinerary</td><td><strong>nhúng</strong> mảng ngày → mảng hoạt động</td><td>lịch trình chỉ tồn tại cùng chuyến đi</td></tr>
+          <tr><td>trip → destinations</td><td>mảng tham chiếu + tên sao chép</td><td>điểm đến dùng chung cho nhiều chuyến đi</td></tr>
+          <tr><td>user ↔ user</td><td><strong>document riêng</strong>, khoá ghép</td><td>quan hệ nhiều–nhiều, số lượng lớn, cần thêm/xoá độc lập</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="call qa">
+      <span class="lbl">Quy tắc rút ra</span>
+      <p><strong>Nhúng</strong> khi dữ liệu con không sống độc lập và luôn được đọc cùng cha. <strong>Tham chiếu</strong> khi dữ liệu con dùng chung, sống lâu, hoặc có thể phình vô hạn. Mảng <code>likes</code> nhúng trong bài viết là ranh giới nguy hiểm: một bài viral một triệu like sẽ làm document phình sát giới hạn 20 MB — với quy mô đồ án thì chấp nhận được, nhưng phải biết mà nói ra.</p>
+    </div>
+
+    <h3>3.5 · Phi chuẩn hoá và bộ đếm</h3>
+    <p>Bài viết mang sẵn <code>authorUsername</code> và <code>authorPhoto</code>. Nhờ đó dựng bảng tin chỉ cần một truy vấn trên <code>travel_content</code>, không JOIN. Cái giá: khi người dùng đổi tên, mọi bài viết cũ vẫn giữ tên cũ.</p>
+    <p>Tương tự, <code>stats.postCount</code>, <code>stats.followerCount</code>, <code>stats.tripCount</code> là số đếm được lưu sẵn thay vì tính bằng <code>COUNT(*)</code> mỗi lần. Mọi đường ghi tạo hoặc xoá nội dung <strong>phải tự cập nhật bộ đếm tương ứng</strong> — không có trigger nào làm hộ.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Cách xử lý dữ liệu lệch</th><th>Đánh đổi</th></tr></thead>
+        <tbody>
+          <tr><td>Chấp nhận lệch (đồ án đang làm)</td><td>Rẻ nhất. Tên tác giả trên bài cũ có thể lỗi thời.</td></tr>
+          <tr><td>Cập nhật lan toả khi đổi tên</td><td>Một truy vấn <code>UPDATE</code> N1QL trên mọi bài của tác giả. Đúng, nhưng chậm nếu nhiều bài.</td></tr>
+          <tr><td>Eventing function nghe DCP</td><td>Máy chủ tự lan toả, ứng dụng không phải biết. Cách "đúng Couchbase" nhất.</td></tr>
+          <tr><td>Không sao chép, JOIN khi đọc</td><td>Luôn đúng, nhưng trả lại chi phí JOIN cho mọi lần dựng bảng tin.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section id="s4">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Hai con đường tới dữ liệu</h2></div>
+    <p class="sec-intro">Couchbase cho hai API hoàn toàn khác nhau trên cùng một tập dữ liệu. Biết khi nào dùng cái nào là kỹ năng quan trọng nhất khi lập trình với nó.</p>
+
+    <h3>4.1 · Key-Value API</h3>
+    <p>Biết khoá thì đọc thẳng. Không SQL, không index, không tối ưu hoá truy vấn — chỉ băm khoá và lấy dữ liệu từ RAM của đúng một node.</p>
+    <figure class="code">
+      <figcaption>Các thao tác KV dùng trong đồ án</figcaption>
+<pre><code class="lang-js">const collection = dbConnection.getBucket('content').defaultCollection;
+
+await collection.insert(key, doc);   // tạo mới, lỗi DocumentExistsError nếu đã có
+await collection.upsert(key, doc);   // tạo hoặc ghi đè
+await collection.replace(key, doc);  // chỉ ghi khi đã tồn tại (nhận cả CAS)
+const r = await collection.get(key); // r.content là JSON, r.cas là số phiên bản
+await collection.remove(key);</code></pre>
+    </figure>
+    <p>Các đường ghi trong đồ án đều đi lối này: <code>createPost</code> dùng <code>insert</code>, <code>likePost</code> đọc rồi <code>upsert</code>, <code>deletePost</code> dùng <code>remove</code>, <code>followUser</code> dùng <code>insert</code> để ép tính duy nhất.</p>
+
+    <h3>4.2 · Thao tác trên một phần document</h3>
+    <p>Đọc cả bài viết 40 KB chỉ để tăng bộ đếm lên 1 là lãng phí. <strong>Sub-document API</strong> gửi <em>đường dẫn</em> tới máy chủ, và máy chủ sửa tại chỗ:</p>
+    <figure class="code">
+      <figcaption>postService.js <em>· cập nhật một phần bằng MutateInSpec</em></figcaption>
+<pre><code class="lang-js">const mutations = [];
+if (updates.text !== undefined)
+  mutations.push(couchbase.MutateInSpec.upsert('content.text', updates.text));
+if (updates.tags !== undefined)
+  mutations.push(couchbase.MutateInSpec.upsert('tags', updates.tags));
+mutations.push(couchbase.MutateInSpec.upsert('updatedAt', new Date().toISOString()));
+
+await collection.mutateIn(Post.getKey(postId), mutations);</code></pre>
+    </figure>
+    <p>Và bộ đếm — đây là chi tiết đắt nhất trong phần này:</p>
+    <figure class="code">
+      <figcaption>postService.js <em>· tăng giảm nguyên tử phía máy chủ</em></figcaption>
+<pre><code class="lang-js">async function updateUserPostCount(userId, delta) {
+  const collection = dbConnection.getBucket('users').defaultCollection;
+  await collection.mutateIn(`user::${userId}`, [
+    { opcode: 'counter', path: 'stats.postCount', delta: delta }
+  ]);
+}</code></pre>
+    </figure>
+    <p>Opcode <code>counter</code> thực thi <em>trên máy chủ</em>, trong một thao tác nguyên tử. Không có chu trình đọc–sửa–ghi ở phía client, nên không có cửa sổ nào để hai request cùng lúc ghi đè lẫn nhau. So sánh với cách làm ở <code>connectionService</code>, nơi bộ đếm người theo dõi được đọc lên, cộng trong bộ nhớ Node.js, rồi <code>upsert</code> lại — cách đó <strong>có</strong> race condition. Mục <a href="#s8">08</a> phân tích kỹ.</p>
+    <p>Chiều ngược lại là <code>lookupIn</code>: lấy vài trường thay vì cả document.</p>
+    <figure class="code">
+      <figcaption>Mẫu lookupIn — chưa dùng trong đồ án nhưng nên biết</figcaption>
+<pre><code class="lang-js">const res = await collection.lookupIn(`post::${id}`, [
+  couchbase.LookupInSpec.get('stats.likeCount'),
+  couchbase.LookupInSpec.count('interactions.comments'),
+  couchbase.LookupInSpec.exists('content.media[0]'),
+]);
+res.content[0].value;   // 51</code></pre>
+    </figure>
+
+    <h3>4.3 · Chọn đường nào</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Tình huống</th><th>Dùng</th><th>Vì sao</th></tr></thead>
+        <tbody>
+          <tr><td>Đã biết khoá</td><td class="k">KV get</td><td>O(1), dưới 1 ms, không cần index</td></tr>
+          <tr><td>Đọc hồ sơ người đang đăng nhập</td><td class="k">KV get</td><td>khoá suy ra từ token</td></tr>
+          <tr><td>Kiểm tra A theo dõi B</td><td class="k">KV get</td><td>khoá ghép đã mã hoá quan hệ</td></tr>
+          <tr><td>Tăng bộ đếm</td><td class="k">mutateIn counter</td><td>nguyên tử, không kéo cả document</td></tr>
+          <tr><td>Sửa vài trường</td><td class="k">mutateIn upsert</td><td>tiết kiệm băng thông, giảm xung đột</td></tr>
+          <tr><td>Đăng nhập bằng email</td><td class="k">N1QL</td><td>email không nằm trong khoá</td></tr>
+          <tr><td>Bảng tin, tìm kiếm, xếp hạng</td><td class="k">N1QL</td><td>lọc, sắp xếp, gộp nhiều document</td></tr>
+          <tr><td>Đếm, thống kê</td><td class="k">N1QL</td><td><code>COUNT</code>, <code>GROUP BY</code> chạy ở Query service</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="call">
+      <span class="lbl">Nguyên tắc</span>
+      <p>Câu hỏi đầu tiên khi viết một hàm truy cập dữ liệu luôn là: <em>"tôi có suy ra được khoá không?"</em> Nếu có, đừng viết N1QL. Chính suy nghĩ này dẫn tới thiết kế khoá ở mục 3.2 — thiết kế khoá tốt là cách biến truy vấn thành tra cứu.</p>
+    </div>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section id="s5">
+    <div class="sec-head"><span class="sec-num">05</span><h2>N1QL / SQL++ chuyên sâu</h2></div>
+    <p class="sec-intro">N1QL là SQL dành cho JSON. Cú pháp quen thuộc, nhưng nó phải giải quyết ba thứ SQL không có: trường lồng nhau, mảng, và sự vắng mặt của trường.</p>
+
+    <h3>5.1 · Giải phẫu một câu truy vấn</h3>
+    <figure class="code">
+      <figcaption>queryHelpers.js · UserQueries.findByEmail <em>· dùng cho đăng nhập</em></figcaption>
+<pre><code class="lang-sql">SELECT META().id, u.*
+FROM travel_users u
+WHERE u.type = 'user' AND u.email = $email
+LIMIT 1</code></pre>
+    </figure>
+    <ul>
+      <li><code>FROM travel_users u</code> — bucket đứng ở vị trí của bảng; <code>u</code> là bí danh.</li>
+      <li><code>META().id</code> — khoá document. Không phải là một trường bên trong JSON, nên phải lấy qua <code>META()</code>. Đây là thứ tương đương khoá chính.</li>
+      <li><code>u.*</code> — trải toàn bộ các trường của document ra hàng kết quả.</li>
+      <li><code>u.type = 'user'</code> — bộ lọc phân loại, đồng thời là điều kiện để Query service chọn được partial index.</li>
+      <li><code>$email</code> — tham số có tên, xem 5.7.</li>
+    </ul>
+    <div class="call warn">
+      <span class="lbl">Hình dạng kết quả</span>
+      <p>Tuỳ cách viết <code>SELECT</code>, hàng trả về có thể phẳng hoặc bị lồng dưới bí danh. Vì thế khắp các service đều thấy dòng <code>posts.map(d =&gt; d.p || d)</code> — nó tháo lớp bọc <code>{ "p": { … } }</code> khi có. Đây là khác biệt thực tế giữa SQL và SQL++ mà ai mới học cũng vấp.</p>
+    </div>
+
+    <h3>5.2 · MISSING không phải NULL</h3>
+    <p>JSON phân biệt "trường có giá trị null" với "trường không tồn tại". SQL++ vì thế có ba trạng thái chứ không phải hai: có giá trị, <code>NULL</code>, và <code>MISSING</code>. Bài viết cũ trong đồ án có thể chưa có <code>stats.likeCount</code>, nên truy vấn xếp hạng phải phòng thủ:</p>
+    <figure class="code">
+      <figcaption>PostQueries.getPopular <em>· xếp hạng bài viết theo tương tác</em></figcaption>
+<pre><code class="lang-sql">SELECT META().id, p.*
+FROM travel_content p
+WHERE p.type = 'post' AND p.visibility = 'public'
+ORDER BY (IFMISSINGORNULL(p.stats.likeCount, 0)
+        + IFMISSINGORNULL(p.stats.commentCount, 0)) DESC,
+         p.createdAt DESC
+LIMIT $limit OFFSET $offset</code></pre>
+    </figure>
+    <p>Không có <code>IFMISSINGORNULL</code>, một bài thiếu trường sẽ cho tổng <code>MISSING</code> và rơi xuống cuối bảng xếp hạng một cách âm thầm. Họ hàm liên quan: <code>IFMISSING</code>, <code>IFNULL</code>, <code>MISSINGIF</code>, và toán tử <code>IS [NOT] MISSING</code>. <strong>Đây là khái niệm mà một hệ quản trị quan hệ không có</strong> — rất đáng nêu khi bảo vệ.</p>
+
+    <h3>5.3 · Truy vấn bên trong mảng</h3>
+    <p>Một chuyến đi chứa mảng <code>destinations</code>. Tìm mọi chuyến đi có ghé Hội An:</p>
+    <figure class="code">
+      <figcaption>TripQueries.getByDestination <em>· vị từ trên phần tử mảng</em></figcaption>
+<pre><code class="lang-sql">SELECT META().id, t.*
+FROM travel_trips t
+WHERE t.type = 'trip'
+  AND ANY d IN t.destinations SATISFIES d.destinationId = $destinationId END
+ORDER BY t.startDate DESC
+LIMIT $limit OFFSET $offset</code></pre>
+    </figure>
+    <p><code>ANY … IN … SATISFIES … END</code> đúng khi <em>ít nhất một</em> phần tử thoả; đối ngẫu của nó là <code>EVERY</code>. Trong mô hình quan hệ, đây là bảng nối <code>trip_destinations</code> cộng một JOIN.</p>
+    <p>Vị từ này chỉ nhanh khi có <strong>array index</strong> tương ứng — và đồ án có:</p>
+    <figure class="code">
+      <figcaption>indexManager.js <em>· array index cho ANY…SATISFIES</em></figcaption>
+<pre><code class="lang-sql">CREATE INDEX idx_trips_destinations
+ON travel_trips(DISTINCT ARRAY d.destinationId FOR d IN destinations END)
+WHERE type = 'trip'</code></pre>
+    </figure>
+    <p>Index này tạo một mục cho <em>mỗi phần tử</em> của mảng, trỏ ngược về document. <code>idx_posts_tags</code> hoạt động y hệt cho mảng thẻ. Các hàm mảng khác đồ án dùng: <code>ARRAY_INTERSECT</code> và <code>ARRAY_LENGTH</code> để tính điểm tương đồng ở <code>discoveryService</code>, và <code>UNNEST</code> (chưa dùng) để trải mảng thành nhiều hàng như một JOIN.</p>
+
+    <h3>5.4 · Truy vấn con và từ khoá RAW — trái tim của bảng tin</h3>
+    <p>Đây là câu truy vấn quan trọng nhất trong toàn hệ thống:</p>
+    <figure class="code">
+      <figcaption>PostQueries.getFeedForUser <em>· bảng tin cá nhân hoá</em></figcaption>
+<pre><code class="lang-sql">SELECT META(p).id, p.*
+FROM travel_content p
+WHERE p.type = 'post'
+  AND p.visibility = 'public'
+  AND p.authorId IN (
+        SELECT RAW c.followingId
+        FROM travel_social c
+        WHERE c.type = 'connection'
+          AND c.followerId = $userId
+          AND c.status = 'active'
+      )
+ORDER BY p.createdAt DESC
+LIMIT $limit OFFSET $offset</code></pre>
+    </figure>
+    <p>Từ khoá <code>RAW</code> là điểm cần giải thích kỹ. Mặc định, SQL++ trả về <em>đối tượng</em>: <code>[{"followingId":"u1"}, {"followingId":"u2"}]</code>. Toán tử <code>IN</code> cần một <em>mảng giá trị</em>. <code>RAW</code> bóc lớp đối tượng đi, cho ra <code>["u1","u2"]</code>. Không có nó, câu truy vấn chạy nhưng luôn trả về rỗng — một lỗi im lặng rất khó lần.</p>
+    <p>Về mặt kế hoạch thực thi: truy vấn con quét <code>idx_connections_follower</code> để lấy danh sách người được theo dõi, rồi truy vấn ngoài dùng <code>idx_posts_author</code> để lấy bài của từng người, gộp lại và sắp xếp. Đây là chiến lược <strong>fan-out khi đọc</strong> — dựng bảng tin ngay lúc yêu cầu.</p>
+    <div class="call qa">
+      <span class="lbl">Câu hỏi phản biện nên chuẩn bị</span>
+      <p><em>"Nếu một người theo dõi 5.000 tài khoản thì sao?"</em> Danh sách <code>IN</code> có 5.000 phần tử, Query service phải gộp và sắp xếp lượng bài rất lớn để lấy ra 20 dòng. Giải pháp công nghiệp là <strong>fan-out khi ghi</strong>: mỗi bài đăng được đẩy sẵn vào document bảng tin của từng người theo dõi, đọc chỉ còn một lần KV get. Đổi chi phí đọc lấy chi phí ghi và dung lượng lưu trữ. Với quy mô đồ án, fan-out khi đọc là lựa chọn đúng — nhưng biết ranh giới ở đâu mới là điều thầy muốn nghe.</p>
+    </div>
+
+    <h3>5.5 · JOIN ON KEYS</h3>
+    <p>Couchbase có JOIN, nhưng dạng hiệu quả nhất là <strong>lookup join</strong>: vế phải được lấy theo khoá đã tính từ vế trái, nên không cần index nào cho vế phải.</p>
+    <figure class="code">
+      <figcaption>TripQueries.getUpcomingTrips <em>· ghép chuyến đi với tác giả</em></figcaption>
+<pre><code class="lang-sql">SELECT META(t).id, t.*, u.username, u.profile.profilePhoto
+FROM travel_trips t
+JOIN travel_users u ON KEYS ('user::' || t.userId)
+WHERE t.type = 'trip'
+  AND t.status = 'planning'
+  AND t.visibility = 'public'
+  AND t.startDate BETWEEN $startDate AND $endDate
+ORDER BY t.startDate
+LIMIT $limit</code></pre>
+    </figure>
+    <p><code>'user::' || t.userId</code> ghép chuỗi thành khoá document, và <code>ON KEYS</code> bảo máy chủ lấy đúng document đó — một KV get cho mỗi hàng, chạy trong Query service. Chú ý câu này JOIN <strong>xuyên bucket</strong>, điều mà nhiều người tưởng NoSQL không làm được.</p>
+    <p>Couchbase cũng hỗ trợ ANSI JOIN đầy đủ (<code>JOIN … ON a.x = b.y</code>) từ phiên bản 5.5, nhưng dạng đó cần index trên vế phải và tốn kém hơn. Khi mô hình dữ liệu cho phép suy ra khoá, <code>ON KEYS</code> luôn là lựa chọn tốt hơn — lại một lần nữa, thiết kế khoá quyết định hiệu năng.</p>
+
+    <h3>5.6 · UNION ALL và biểu thức tính điểm</h3>
+    <p>Dòng hoạt động cần trộn hai loại document khác nhau ở hai bucket khác nhau vào một dòng thời gian:</p>
+    <figure class="code">
+      <figcaption>discoveryService.getActivityFeed <em>· trộn chuyến đi và bài viết</em></figcaption>
+<pre><code class="lang-sql">SELECT 'trip' AS activityType, t.id, t.title AS content, t.userId, t.createdAt
+FROM travel_trips t
+WHERE t.type = 'trip' AND t.visibility = 'public'
+  AND t.userId IN (SELECT RAW c.followingId FROM travel_social c
+                   WHERE c.followerId = $userId AND c.status = 'active')
+  AND t.createdAt > $cutoffDate
+
+UNION ALL
+
+SELECT 'post' AS activityType, p.id, p.content.text AS content,
+       p.authorId AS userId, p.createdAt
+FROM travel_content p
+WHERE p.type = 'post' AND p.visibility = 'public'
+  AND p.authorId IN (SELECT RAW c.followingId FROM travel_social c
+                     WHERE c.followerId = $userId AND c.status = 'active')
+  AND p.createdAt > $cutoffDate
+
+ORDER BY createdAt DESC
+LIMIT $limit OFFSET $offset</code></pre>
+    </figure>
+    <p>Hai nhánh phải cùng số cột và cùng tên cột, nên nhánh chuyến đi phải đặt bí danh <code>t.title AS content</code> để khớp với <code>p.content.text AS content</code>. Cách xử lý này giống hệt SQL chuẩn.</p>
+    <p>Còn xếp hạng thì tính ngay trong câu truy vấn bằng biểu thức có trọng số:</p>
+    <figure class="code">
+      <figcaption>discoveryService.getTrendingDestinations <em>· điểm xu hướng</em></figcaption>
+<pre><code class="lang-sql">SELECT META(d).id, d.*,
+       (d.stats.tripCount * 3 + d.stats.postCount * 2 + d.stats.viewCount * 0.1)
+       AS trendingScore
+FROM travel_trips d
+WHERE d.type = 'destination'
+ORDER BY trendingScore DESC, d.stats.tripCount DESC
+LIMIT $limit</code></pre>
+    </figure>
+    <p>Đáng chú ý: bí danh <code>trendingScore</code> dùng được ngay trong <code>ORDER BY</code>. Trọng số 3 / 2 / 0.1 phản ánh một đánh giá sản phẩm — lập kế hoạch chuyến đi là tín hiệu mạnh hơn đăng bài, và mạnh hơn nhiều so với lượt xem.</p>
+
+    <h3>5.7 · Tham số có tên — bảo mật và hiệu năng</h3>
+    <p>Mọi truy vấn trong đồ án đều truyền giá trị qua tham số, không ghép chuỗi:</p>
+    <figure class="code">
+      <figcaption>Cách đúng và cách sai</figcaption>
+<pre><code class="lang-js">// ✔ tham số có tên — giá trị đi riêng khỏi câu lệnh
+await cluster.query(statement, { parameters: { email, limit, offset } });
+
+// ✘ ghép chuỗi — mở đường cho tấn công tiêm mã
+const bad = `SELECT * FROM travel_users WHERE email = '${email}'`;</code></pre>
+    </figure>
+    <p>Hai lợi ích: <strong>chống tiêm mã</strong> (giá trị không bao giờ được phân tích như cú pháp) và <strong>tái dùng kế hoạch thực thi</strong> (Query service băm câu lệnh; cùng một câu lệnh với tham số khác nhau dùng lại kế hoạch đã lập).</p>
+    <div class="call warn">
+      <span class="lbl">Một chỗ còn hở trong đồ án</span>
+      <p>Tên bucket được nội suy vào câu lệnh: <code>FROM ${bucketName}</code>. Ở đây an toàn vì giá trị đến từ biến môi trường chứ không từ người dùng — nhưng khi bảo vệ nên phân biệt rõ hai loại nội suy: <em>định danh</em> (bucket, trường) không thể tham số hoá, còn <em>giá trị</em> thì bắt buộc phải tham số hoá.</p>
+    </div>
+
+    <h3>5.8 · Phân trang</h3>
+    <p>Toàn bộ API danh sách dùng <code>LIMIT $limit OFFSET $offset</code>, với tầng route quy đổi <code>page</code> và <code>limit</code> thành <code>offset</code>. Cách này đơn giản và đúng, nhưng chi phí tăng tuyến tính theo độ sâu: <code>OFFSET 10000</code> vẫn buộc máy chủ dựng và bỏ đi 10.000 hàng.</p>
+    <p>Cách thay thế là <strong>phân trang theo mốc</strong> (keyset pagination): thay vì đếm số hàng bỏ qua, lọc theo mốc của trang trước.</p>
+    <figure class="code">
+      <figcaption>Phân trang theo mốc — hướng cải tiến</figcaption>
+<pre><code class="lang-sql">SELECT META(p).id, p.*
+FROM travel_content p
+WHERE p.type = 'post' AND p.authorId = $authorId
+  AND p.createdAt &lt; $lastSeenCreatedAt   -- mốc lấy từ trang trước
+ORDER BY p.createdAt DESC
+LIMIT $limit</code></pre>
+    </figure>
+    <p>Chi phí không đổi ở mọi độ sâu, vì <code>idx_posts_author(authorId, createdAt DESC)</code> nhảy thẳng tới điểm bắt đầu.</p>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section id="s6">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Chỉ mục</h2></div>
+    <p class="sec-intro">Trong Couchbase, không có index thì truy vấn N1QL <em>vẫn chạy</em> — nó chỉ chạy chậm khủng khiếp. Đây là phần dễ ghi điểm nhất trong một môn cơ sở dữ liệu.</p>
+
+    <h3>6.1 · GSI và các dạng index</h3>
+    <p>Chỉ mục của Couchbase là <strong>GSI</strong> — Global Secondary Index — do Index service giữ, cập nhật bất đồng bộ qua dòng DCP, và độc lập với việc dữ liệu nằm ở vBucket nào.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Dạng</th><th>Cú pháp</th><th>Trong đồ án</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Primary</strong></td><td class="k">CREATE PRIMARY INDEX …</td><td>4 cái, mỗi bucket một — chỉ nên có ở môi trường phát triển</td></tr>
+          <tr><td><strong>Secondary</strong></td><td class="k">ON b(field)</td><td><code>idx_users_email</code></td></tr>
+          <tr><td><strong>Composite</strong></td><td class="k">ON b(f1, f2 DESC)</td><td><code>idx_posts_author(authorId, createdAt DESC)</code></td></tr>
+          <tr><td><strong>Partial</strong></td><td class="k">… WHERE type = 'post'</td><td>19/19 index thứ cấp đều là partial</td></tr>
+          <tr><td><strong>Array</strong></td><td class="k">DISTINCT ARRAY x FOR x IN arr END</td><td><code>idx_posts_tags</code>, <code>idx_trips_destinations</code></td></tr>
+          <tr><td><strong>Covering</strong></td><td>không phải cú pháp riêng</td><td>xảy ra khi index đủ mọi trường câu truy vấn cần</td></tr>
+          <tr><td><strong>Adaptive</strong></td><td class="k">ON b(DISTINCT PAIRS(SELF))</td><td>chưa dùng — hữu ích cho bộ lọc tuỳ biến</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.2 · Toàn bộ 23 index và truy vấn mà chúng phục vụ</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Index</th><th>Khoá</th><th>Phục vụ</th></tr></thead>
+        <tbody>
+          <tr><td class="k">idx_users_email</td><td class="k">email</td><td>đăng nhập · kiểm tra email trùng</td></tr>
+          <tr><td class="k">idx_users_username</td><td class="k">username</td><td>đăng ký · tra hồ sơ theo tên</td></tr>
+          <tr><td class="k">idx_users_type</td><td class="k">type</td><td>quét theo loại, thống kê</td></tr>
+          <tr><td class="k">idx_users_created</td><td class="k">createdAt DESC</td><td>danh sách người dùng mới</td></tr>
+          <tr><td class="k">idx_users_location</td><td class="k">location.country, location.city</td><td>tìm bạn đồng hành gần nơi ở</td></tr>
+          <tr><td class="k">idx_users_primary</td><td class="k">PRIMARY</td><td>dự phòng khi phát triển</td></tr>
+          <tr><td class="k">idx_trips_user</td><td class="k">userId, startDate DESC</td><td>chuyến đi của tôi — <em>bao luôn cả ORDER BY</em></td></tr>
+          <tr><td class="k">idx_trips_status</td><td class="k">status, startDate</td><td>lọc theo trạng thái lập kế hoạch</td></tr>
+          <tr><td class="k">idx_trips_dates</td><td class="k">startDate, endDate</td><td><code>BETWEEN</code> ở getUpcomingTrips</td></tr>
+          <tr><td class="k">idx_trips_destinations</td><td class="k">ARRAY destinationId</td><td>ANY…SATISFIES trên mảng điểm đến</td></tr>
+          <tr><td class="k">idx_destinations_country</td><td class="k">country, name</td><td>duyệt điểm đến theo quốc gia</td></tr>
+          <tr><td class="k">idx_destinations_slug</td><td class="k">countryCode, slug</td><td>tra điểm đến theo đường dẫn thân thiện</td></tr>
+          <tr><td class="k">idx_trips_primary</td><td class="k">PRIMARY</td><td>dự phòng khi phát triển</td></tr>
+          <tr><td class="k">idx_posts_author</td><td class="k">authorId, createdAt DESC</td><td>bài của tôi · truy vấn ngoài của bảng tin</td></tr>
+          <tr><td class="k">idx_posts_trip</td><td class="k">tripId, createdAt DESC</td><td>bài thuộc một chuyến đi</td></tr>
+          <tr><td class="k">idx_posts_destination</td><td class="k">destinationId, createdAt DESC</td><td>bài về một điểm đến</td></tr>
+          <tr><td class="k">idx_posts_created</td><td class="k">createdAt DESC, visibility</td><td>dòng thời gian toàn cục</td></tr>
+          <tr><td class="k">idx_posts_tags</td><td class="k">ARRAY tags</td><td>lọc theo thẻ</td></tr>
+          <tr><td class="k">idx_posts_primary</td><td class="k">PRIMARY</td><td>dự phòng khi phát triển</td></tr>
+          <tr><td class="k">idx_connections_follower</td><td class="k">followerId, createdAt DESC</td><td>đang theo dõi ai · truy vấn con của bảng tin</td></tr>
+          <tr><td class="k">idx_connections_following</td><td class="k">followingId, createdAt DESC</td><td>ai theo dõi tôi</td></tr>
+          <tr><td class="k">idx_connections_status</td><td class="k">status</td><td>lọc quan hệ bị chặn</td></tr>
+          <tr><td class="k">idx_connections_primary</td><td class="k">PRIMARY</td><td>dự phòng khi phát triển</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>6.3 · Ba quy tắc chọn index</h3>
+    <div class="grid3">
+      <div class="card">
+        <span class="tagnum">Quy tắc 1</span>
+        <h4>Khoá dẫn đầu</h4>
+        <p>Index chỉ được chọn nếu truy vấn có vị từ trên trường <em>đầu tiên</em>. <code>idx_users_location(country, city)</code> giúp cho câu lọc theo quốc gia, và cho câu lọc theo cả hai — nhưng vô dụng nếu chỉ lọc theo thành phố.</p>
+      </div>
+      <div class="card">
+        <span class="tagnum">Quy tắc 2</span>
+        <h4>Thứ tự sắp xếp có trong index</h4>
+        <p><code>idx_posts_author(authorId, createdAt DESC)</code> lưu sẵn theo đúng thứ tự mà <code>ORDER BY createdAt DESC</code> cần, nên Query service <em>bỏ qua bước sắp xếp</em>. Đây là lý do phần <code>DESC</code> trong định nghĩa index không phải trang trí.</p>
+      </div>
+      <div class="card">
+        <span class="tagnum">Quy tắc 3</span>
+        <h4>Partial index thu nhỏ chỉ mục</h4>
+        <p>Mệnh đề <code>WHERE type = 'trip'</code> khiến index không chứa các document <code>destination</code> nằm chung bucket. Chỉ mục nhỏ hơn, quét nhanh hơn, tốn ít RAM hơn — miễn là truy vấn cũng có đúng vị từ đó.</p>
+      </div>
+    </div>
+
+    <h3>6.4 · Covering index — chỉ mục tự trả lời</h3>
+    <p>Bình thường Query service quét index để lấy danh sách khoá, rồi <strong>fetch</strong> document từ Data service. Nếu index đã chứa đủ mọi trường mà truy vấn cần, bước fetch bị loại bỏ hoàn toàn. Đồ án có một ví dụ hoàn hảo:</p>
+    <div class="split">
+      <figure class="code">
+        <figcaption>Được bao phủ <em>· chỉ chạm Index service</em></figcaption>
+<pre><code class="lang-sql">SELECT COUNT(*) AS count
+FROM travel_content p
+WHERE p.type = 'post'
+  AND p.authorId = $authorId</code></pre>
+      </figure>
+      <figure class="code">
+        <figcaption>Không được bao phủ <em>· phải fetch document</em></figcaption>
+<pre><code class="lang-sql">SELECT META().id, p.*
+FROM travel_content p
+WHERE p.type = 'post'
+  AND p.authorId = $authorId
+ORDER BY p.createdAt DESC</code></pre>
+      </figure>
+    </div>
+    <p>Cả hai dùng chung <code>idx_posts_author</code>. Câu bên trái chỉ cần đếm số mục trong index — <code>EXPLAIN</code> sẽ cho thấy trường <code>covers</code> và <strong>không có</strong> toán tử <code>Fetch</code>. Câu bên phải cần toàn bộ nội dung bài viết nên buộc phải lấy document về.</p>
+
+    <h3>6.5 · EXPLAIN và ADVISE — phần nên demo trực tiếp</h3>
+    <p>Mở Query Workbench trên <code>http://localhost:8091</code> và chạy:</p>
+    <figure class="code">
+      <figcaption>Ba câu để chiếu trong buổi bảo vệ</figcaption>
+<pre><code class="lang-sql">-- 1 · dùng đúng index → IndexScan3, trường "index": "idx_posts_author"
+EXPLAIN SELECT META().id, p.* FROM travel_content p
+WHERE p.type = 'post' AND p.authorId = 'a1b2c3d4';
+
+-- 2 · không có index phù hợp → PrimaryScan3, quét toàn bộ bucket
+EXPLAIN SELECT p.* FROM travel_content p
+WHERE p.type = 'post' AND p.stats.likeCount > 100;
+
+-- 3 · để máy chủ tự đề xuất index cho câu chậm ở trên
+ADVISE SELECT p.* FROM travel_content p
+WHERE p.type = 'post' AND p.stats.likeCount > 100;</code></pre>
+    </figure>
+    <p>Câu số 2 là minh chứng sống động nhất: nó vẫn trả về kết quả đúng, nhưng kế hoạch cho thấy <code>PrimaryScan3</code> — nghĩa là mọi bài viết trong bucket đều bị đọc qua. Với 10.000 bài của bộ dữ liệu mẫu, khác biệt thời gian đủ lớn để cả lớp thấy rõ.</p>
+    <p>Chạy <code>PROFILE</code> kèm truy vấn (bật "Include profile" trong Workbench) sẽ cho thời gian thực của từng toán tử — <code>IndexScan</code>, <code>Fetch</code>, <code>Filter</code>, <code>Order</code>, <code>Limit</code> — và chỉ đúng chỗ nghẽn.</p>
+    <div class="call warn">
+      <span class="lbl">Vì sao primary index nguy hiểm</span>
+      <p><code>CREATE PRIMARY INDEX</code> đánh chỉ mục <em>mọi</em> document trong bucket. Nó khiến truy vấn thiếu index vẫn chạy — nên lỗi thiết kế bị che giấu thay vì báo lỗi. Trong môi trường thật, người ta xoá primary index để mọi truy vấn buộc phải có index riêng. Đồ án giữ lại vì tiện phát triển; nói rõ điều này là một điểm cộng.</p>
+    </div>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section id="s7">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Tính nhất quán của chỉ mục</h2></div>
+    <p class="sec-intro">Đây là khái niệm gây bất ngờ nhiều nhất cho người quen với hệ quản trị quan hệ, và là nguồn gốc của một lớp lỗi rất khó tái hiện.</p>
+
+    <p>Nhớ lại mục 2.4: lệnh ghi được xác nhận khi dữ liệu vào RAM, còn GSI cập nhật <em>sau đó</em> qua dòng DCP. Nghĩa là:</p>
+    <div class="diagram">
+      <div class="cap">Khoảng thời gian không nhất quán</div>
+      <div class="chain">
+        <div class="node"><b>t₀</b><small>insert('post::x') trả về OK</small></div>
+        <div class="node"><b>t₁</b><small>N1QL SELECT — chưa thấy post::x</small></div>
+        <div class="node"><b>t₂</b><small>DCP cập nhật index</small></div>
+        <div class="node"><b>t₃</b><small>N1QL SELECT — đã thấy</small></div>
+      </div>
+    </div>
+    <p>Khoảng <code>t₀ → t₂</code> thường chỉ vài mili-giây, nhưng nó thật. Đọc theo <strong>khoá</strong> thì không bị ảnh hưởng — KV luôn đọc dữ liệu mới nhất. Chỉ truy vấn N1QL mới nhìn qua lăng kính index.</p>
+
+    <h3>Ba mức scan consistency</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Mức</th><th>Hành vi</th><th>Dùng khi</th></tr></thead>
+        <tbody>
+          <tr><td class="k">not_bounded</td><td>Mặc định. Chạy ngay với trạng thái index hiện có.</td><td>Bảng tin, tìm kiếm, gợi ý — nhanh, chấp nhận trễ vài ms.</td></tr>
+          <tr><td class="k">request_plus</td><td>Chờ index bắt kịp thời điểm nhận truy vấn.</td><td>Đọc lại ngay sau khi ghi. Chậm hơn, đúng chắc chắn.</td></tr>
+          <tr><td class="k">at_plus</td><td>Chờ index bắt kịp đúng <em>những</em> lệnh ghi mình vừa thực hiện.</td><td>Cân bằng tốt nhất — chỉ chờ đúng thứ mình cần.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure class="code">
+      <figcaption>Cách khai báo trong Node SDK</figcaption>
+<pre><code class="lang-js">import couchbase from 'couchbase';
+
+await cluster.query(statement, {
+  parameters: { authorId },
+  scanConsistency: couchbase.QueryScanConsistency.RequestPlus,
+});</code></pre>
+    </figure>
+    <p>Đồ án không đặt tham số này, tức là dùng <code>not_bounded</code> khắp nơi. Chỗ nguy hiểm nhất là luồng đăng bài: nếu giao diện gọi <code>POST /api/posts</code> rồi <code>GET /api/posts?author=…</code> ngay lập tức, bài mới có thể chưa xuất hiện. Đồ án né được lỗi này vì <code>createPost</code> <strong>trả về chính document vừa tạo</strong> và giao diện chèn thẳng vào danh sách — một cách xử lý hợp lý và không tốn thêm độ trễ.</p>
+    <div class="call qa">
+      <span class="lbl">Câu trả lời gọn cho câu hỏi này</span>
+      <p><em>"Couchbase nhất quán hay không nhất quán?"</em> — Đọc theo khoá là <strong>nhất quán mạnh</strong>: luôn thấy bản ghi mới nhất, vì chỉ có một node giữ vBucket ở trạng thái active. Đọc qua chỉ mục là <strong>nhất quán cuối cùng theo mặc định</strong>, và có thể nâng lên nhất quán mạnh cho từng truy vấn bằng <code>scan_consistency</code>. Đó là lựa chọn ở mức truy vấn, không phải thuộc tính cố định của hệ thống.</p>
+    </div>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section id="s8">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Giao dịch, đồng thời và một lỗi thật trong mã nguồn</h2></div>
+    <p class="sec-intro">Phần này là nơi tự phê bình có kiểm soát — trình bày một khiếm khuyết mình đã tìm ra và biết cách sửa luôn ghi điểm cao hơn là giả vờ hoàn hảo.</p>
+
+    <h3>8.1 · Thao tác theo dõi hiện đang gồm ba lệnh ghi</h3>
+    <figure class="code">
+      <figcaption>connectionService.followUser <em>· ba lệnh ghi, không nguyên tử</em></figcaption>
+<pre><code class="lang-js">await collection.insert(key, connection);   // ① tạo document quan hệ
+await updateFollowerCount(followingId, 1);  // ② tăng bộ đếm của người được theo dõi
+await updateFollowingCount(followerId, 1);  // ③ tăng bộ đếm của người theo dõi</code></pre>
+    </figure>
+    <p>Nếu tiến trình chết sau ①, quan hệ tồn tại nhưng bộ đếm sai. Trong mô hình quan hệ, ba lệnh này nằm trong một <code>BEGIN … COMMIT</code> và không thể tách rời.</p>
+
+    <h3>8.2 · Vấn đề thứ hai: đọc–sửa–ghi</h3>
+    <figure class="code">
+      <figcaption>Hai cách cập nhật bộ đếm trong cùng một mã nguồn</figcaption>
+<pre><code class="lang-js">// ✘ connectionService.js — có race condition
+const result = await collection.get(`user::${userId}`);
+const user = result.content;
+user.stats.followerCount = Math.max(0, (user.stats.followerCount || 0) + delta);
+await collection.upsert(`user::${userId}`, user);
+
+// ✔ postService.js — nguyên tử phía máy chủ
+await collection.mutateIn(`user::${userId}`, [
+  { opcode: 'counter', path: 'stats.postCount', delta: delta }
+]);</code></pre>
+    </figure>
+    <p>Ở cách trên, hai người cùng bấm theo dõi trong cùng một khoảnh khắc sẽ cùng đọc giá trị 100, cùng tính 101, và cùng ghi 101 — mất một lượt. Đây chính là <strong>lost update</strong>, hiện tượng kinh điển trong lý thuyết cơ sở dữ liệu. Cách dưới không có cửa sổ đó vì phép cộng xảy ra trên máy chủ.</p>
+    <p>Hai cách sửa, cả hai đều đáng nêu:</p>
+    <ol class="body">
+      <li><strong>Đổi sang opcode <code>counter</code></strong> — sửa một dòng, hết lỗi. Đây là cách nên làm.</li>
+      <li><strong>Dùng CAS</strong> — truyền <code>result.cas</code> vào lệnh <code>replace</code>; nếu ai đó đã sửa trong lúc đó, SDK ném <code>CasMismatchError</code> và ta thử lại. Đây là điều khiển đồng thời lạc quan.</li>
+    </ol>
+    <figure class="code">
+      <figcaption>Bản sửa bằng CAS — minh hoạ khoá lạc quan</figcaption>
+<pre><code class="lang-js">for (let attempt = 0; attempt < 3; attempt++) {
+  const res = await collection.get(key);
+  res.content.stats.followerCount += delta;
+  try {
+    await collection.replace(key, res.content, { cas: res.cas });
+    return;                                    // thành công
+  } catch (e) {
+    if (e.name !== 'CasMismatchError') throw e; // ai đó đã sửa → thử lại
+  }
+}</code></pre>
+    </figure>
+
+    <h3>8.3 · Couchbase có giao dịch ACID</h3>
+    <p>Từ phiên bản 6.5, Couchbase hỗ trợ giao dịch ACID phân tán trên nhiều document, nhiều collection và cả nhiều bucket. Thao tác theo dõi viết lại đúng chuẩn sẽ như sau:</p>
+    <figure class="code">
+      <figcaption>Hướng cải tiến · giao dịch phân tán trong Node SDK</figcaption>
+<pre><code class="lang-js">await cluster.transactions().run(async (ctx) => {
+  await ctx.insert(socialCollection, connectionKey, connection);
+
+  const follower  = await ctx.get(usersCollection, `user::${followerId}`);
+  follower.content.stats.followingCount += 1;
+  await ctx.replace(follower, follower.content);
+
+  const following = await ctx.get(usersCollection, `user::${followingId}`);
+  following.content.stats.followerCount += 1;
+  await ctx.replace(following, following.content);
+});   // hoặc tất cả cùng ghi, hoặc không gì cả</code></pre>
+    </figure>
+    <p>N1QL cũng có <code>BEGIN TRANSACTION</code> / <code>COMMIT</code> từ phiên bản 7.0. Cần nói rõ đánh đổi: giao dịch thêm nhiều vòng mạng và ghi thêm document siêu dữ liệu, nên chỉ dùng khi thực sự cần bất biến — hợp lý cho ví, đơn hàng, tồn kho; hơi nặng cho một nút theo dõi.</p>
+    <div class="call">
+      <span class="lbl">Cách phát biểu khi bảo vệ</span>
+      <p>"Couchbase <strong>có</strong> ACID đầy đủ trên nhiều document từ 6.5. Nhóm em chọn không dùng cho luồng theo dõi vì chi phí độ trễ, và chấp nhận rằng bộ đếm có thể lệch trong tình huống hiếm. Nhưng em đã xác định được một race condition thật trong <code>updateFollowerCount</code>, và cách sửa đúng là chuyển sang opcode <code>counter</code> của sub-document API."</p>
+    </div>
+  </section>
+
+  <!-- ============ 9 ============ -->
+  <section id="s9">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Phân tích hiệu năng</h2></div>
+    <p class="sec-intro">Bốn điểm nghẽn có thật trong đồ án, kèm chẩn đoán và hướng xử lý. Bộ dữ liệu mẫu lớn — 100 người dùng, 10.000 bài viết, 5.000 chuyến đi — đủ để thấy khác biệt.</p>
+
+    <h3>Điểm nghẽn 1 · Tìm kiếm bằng LIKE</h3>
+    <figure class="code">
+      <figcaption>searchService.searchUsers <em>· sáu vị từ LIKE với ký tự đại diện đầu chuỗi</em></figcaption>
+<pre><code class="lang-sql">WHERE u.type = 'user' AND u.status = 'active'
+  AND ( LOWER(u.username)               LIKE $query
+     OR LOWER(u.profile.firstName)      LIKE $query
+     OR LOWER(u.profile.bio)            LIKE $query
+     OR LOWER(u.profile.location.city)  LIKE $query )
+-- $query = '%hà nội%'</code></pre>
+    </figure>
+    <p>Ký tự đại diện ở <em>đầu</em> chuỗi khiến index B-tree vô dụng — không có tiền tố để nhảy tới. Thêm nữa, <code>LOWER()</code> bọc quanh trường làm mất khả năng dùng index trừ khi tạo <em>function-based index</em> trên chính <code>LOWER(username)</code>. Kết quả là quét toàn bộ.</p>
+    <p><strong>Cách đúng:</strong> Full-Text Search service. Tạo một FTS index và truy vấn bằng <code>SEARCH()</code>. FTS cho thêm chấm điểm liên quan, khoan dung lỗi chính tả, phân tích tiếng Việt và tìm theo cụm từ — những thứ <code>LIKE</code> không bao giờ làm được.</p>
+    <figure class="code">
+      <figcaption>Hướng cải tiến · dùng Search service</figcaption>
+<pre><code class="lang-sql">SELECT META(u).id, u.username, SEARCH_SCORE() AS score
+FROM travel_users u
+WHERE SEARCH(u, { "query": { "match": "hà nội", "fuzziness": 1 } })
+ORDER BY score DESC
+LIMIT 20</code></pre>
+    </figure>
+
+    <h3>Điểm nghẽn 2 · N+1 khi tải danh sách người theo dõi</h3>
+    <p><code>getFollowers</code> chạy một truy vấn N1QL lấy các document quan hệ, rồi với <em>mỗi</em> kết quả lại gọi một <code>collection.get()</code> để lấy hồ sơ. Với trang 20 người: 1 truy vấn + 20 lần tra cứu.</p>
+    <p>Đánh giá công bằng: đây <em>không</em> tệ như N+1 trong thế giới quan hệ. Các lệnh get chạy song song qua <code>Promise.all</code>, mỗi lệnh dưới một mili-giây, và chúng bỏ qua hoàn toàn Query service. Nhưng vẫn có hai cách gọn hơn:</p>
+    <ul>
+      <li><code>collection.getMulti(keys)</code> — gộp thành một lượt.</li>
+      <li>Một truy vấn duy nhất với <code>JOIN … ON KEYS ('user::' || c.followerId)</code>, để máy chủ tự ghép.</li>
+    </ul>
+
+    <h3>Điểm nghẽn 3 · Quét toàn bộ trong gợi ý kết bạn</h3>
+    <figure class="code">
+      <figcaption>connectionService.getSuggestedConnections</figcaption>
+<pre><code class="lang-sql">WHERE u.type = 'user' AND u.status = 'active' AND u.id != $userId
+  AND u.id NOT IN (SELECT RAW c.followingId FROM travel_social c
+                   WHERE c.type = 'connection' AND c.followerId = $userId
+                     AND c.status = 'active')
+ORDER BY IFMISSINGORNULL(u.stats.followerCount, 0) DESC
+LIMIT $limit</code></pre>
+    </figure>
+    <p>Không có vị từ nào chọn được index có tính chọn lọc, nên câu này quét mọi người dùng rồi sắp xếp toàn bộ chỉ để lấy 10 dòng. Với 100 người dùng thì không sao; với một triệu thì hỏng. Cách sửa: thêm index <code>(status, stats.followerCount DESC) WHERE type = 'user'</code> để index cung cấp sẵn thứ tự, rồi lọc bỏ những người đã theo dõi sau khi đã cắt ngắn.</p>
+
+    <h3>Điểm nghẽn 4 · OFFSET sâu</h3>
+    <p>Đã trình bày ở mục 5.8. Trang 1 rẻ, trang 500 đắt gấp 500 lần. Phân trang theo mốc giữ chi phí không đổi.</p>
+
+    <div class="call">
+      <span class="lbl">Tổng kết hiệu năng</span>
+      <p>Ba nguồn tăng tốc trong đồ án — theo thứ tự tác động: (1) thiết kế khoá để biến truy vấn thành tra cứu, (2) partial index có thứ tự sắp xếp sẵn để tránh bước sort, (3) phi chuẩn hoá để tránh JOIN khi dựng bảng tin. Cả ba đều là quyết định <em>thiết kế</em>, không phải tinh chỉnh cấu hình.</p>
+    </div>
+  </section>
+
+  <!-- ============ 10 ============ -->
+  <section id="s10">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Vận hành và demo</h2></div>
+
+    <h3>Chuẩn bị dữ liệu</h3>
+    <figure class="code">
+      <figcaption>Thứ tự lệnh cần chạy trước buổi bảo vệ</figcaption>
+<pre><code class="lang-bash">npm run db:init            # tạo 23 index + 10 điểm đến mẫu (chạy lại được nhiều lần)
+npm run db:seed-realistic  # 100 bản ghi được biên tập kỹ, ảnh thật từ Cloudinary
+npm run dev                # API ở cổng 3000
+cd client && npm run dev   # giao diện ở cổng 5173</code></pre>
+    </figure>
+    <p>Bốn bucket <code>travel_users</code>, <code>travel_content</code>, <code>travel_trips</code>, <code>travel_social</code> phải tồn tại <em>trước</em> khi chạy <code>db:init</code>. Máy chủ chỉ cảnh báo rồi đánh dấu bucket không khả dụng nếu thiếu, nên lỗi sẽ xuất hiện muộn dưới dạng lỗi truy vấn khó hiểu.</p>
+    <p>Muốn có số liệu đủ lớn để <code>EXPLAIN</code> tạo khác biệt rõ rệt, chạy <code>node src/scripts/seedLargeData.js</code> — 100 người dùng, 10.000 bài viết, 5.000 chuyến đi. Kịch bản này mất 30–60 phút, phải chạy từ hôm trước.</p>
+
+    <h3>Trình tự demo đề xuất</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Bước</th><th>Thao tác</th><th>Ý muốn chứng minh</th></tr></thead>
+        <tbody>
+          <tr><td class="k">1</td><td>Console → bucket <code>travel_users</code> → mở một document</td><td>hồ sơ lồng nhau nằm gọn trong một JSON</td></tr>
+          <tr><td class="k">2</td><td>Đăng bài trên giao diện → tìm document vừa tạo trong Console</td><td>các trường phi chuẩn hoá được ghi ngay lúc tạo</td></tr>
+          <tr><td class="k">3</td><td>Kiểm tra <code>stats.postCount</code> của người dùng đó tăng lên</td><td>bộ đếm qua opcode <code>counter</code></td></tr>
+          <tr><td class="k">4</td><td>Bấm theo dõi → xem khoá <code>connection::…::…</code> xuất hiện</td><td>khoá ghép mã hoá quan hệ</td></tr>
+          <tr><td class="k">5</td><td>Query Workbench: chạy câu bảng tin</td><td>truy vấn con với <code>RAW</code></td></tr>
+          <tr><td class="k">6</td><td><code>EXPLAIN</code> câu có index rồi câu không có index</td><td>IndexScan3 đối lập PrimaryScan3</td></tr>
+          <tr><td class="k">7</td><td><code>EXPLAIN</code> câu <code>COUNT(*)</code></td><td>covering index, không có toán tử Fetch</td></tr>
+          <tr><td class="k">8</td><td>Console → tab Indexes</td><td>23 index, số mục và dung lượng RAM từng cái</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="call warn">
+      <span class="lbl">Dự phòng</span>
+      <p>Chụp màn hình toàn bộ tám bước từ tối hôm trước và để sẵn trong một thư mục. Nếu mạng, Docker hay Cloudinary hỏng vào đúng lúc trình bày, bạn vẫn còn nội dung để nói.</p>
+    </div>
+  </section>
+
+  <!-- ============ 11 ============ -->
+  <section id="s11">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Hạn chế và hướng phát triển</h2></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Hiện trạng</th><th>Hạn chế</th><th>Hướng đi</th></tr></thead>
+        <tbody>
+          <tr><td>4 bucket, collection <code>_default</code></td><td>tốn tài nguyên, không tận dụng mô hình 7.x</td><td>1 bucket + 5 collection trong một scope</td></tr>
+          <tr><td>Tìm kiếm bằng <code>LIKE '%…%'</code></td><td>quét toàn bộ, không chấm điểm liên quan</td><td>FTS index + <code>SEARCH()</code></td></tr>
+          <tr><td>Bảng tin fan-out khi đọc</td><td>chi phí tăng theo số người được theo dõi</td><td>document bảng tin dựng sẵn qua Eventing</td></tr>
+          <tr><td>Bộ đếm đọc–sửa–ghi ở connectionService</td><td>lost update khi có tương tranh</td><td>opcode <code>counter</code> hoặc CAS</td></tr>
+          <tr><td>Theo dõi gồm 3 lệnh ghi rời</td><td>không nguyên tử</td><td><code>cluster.transactions().run()</code></td></tr>
+          <tr><td>Không đặt <code>scan_consistency</code></td><td>đọc-sau-ghi có thể trượt</td><td><code>request_plus</code> cho các luồng đọc lại ngay</td></tr>
+          <tr><td>Phân trang bằng OFFSET</td><td>trang sâu tốn kém</td><td>phân trang theo mốc <code>createdAt</code></td></tr>
+          <tr><td>Ảnh trên Cloudinary</td><td>phụ thuộc dịch vụ ngoài</td><td>chấp nhận — lưu nhị phân trong CSDL là phản mẫu</td></tr>
+          <tr><td>Không có TTL trên document nào</td><td>—</td><td>đặt TTL cho token xác thực, thông báo</td></tr>
+          <tr><td>Chưa có replica</td><td>một node hỏng là mất dữ liệu</td><td>bật 1 replica, kiểm chứng tự chuyển đổi khi hỏng</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 12 ============ -->
+  <section id="s12">
+    <div class="sec-head"><span class="sec-num">12</span><h2>Phụ lục</h2></div>
+
+    <h3>12.1 · Sổ tay N1QL</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Việc cần làm</th><th>Cú pháp</th></tr></thead>
+        <tbody>
+          <tr><td>Lấy khoá document</td><td class="k">SELECT META().id FROM b</td></tr>
+          <tr><td>Đọc theo khoá, bỏ qua index</td><td class="k">SELECT * FROM b USE KEYS ['user::1','user::2']</td></tr>
+          <tr><td>Trường lồng nhau</td><td class="k">u.profile.location.city</td></tr>
+          <tr><td>Phần tử mảng</td><td class="k">p.content.media[0].url</td></tr>
+          <tr><td>Có phần tử thoả điều kiện</td><td class="k">ANY x IN arr SATISFIES x.f = $v END</td></tr>
+          <tr><td>Mọi phần tử đều thoả</td><td class="k">EVERY x IN arr SATISFIES x.f &gt; 0 END</td></tr>
+          <tr><td>Trải mảng thành nhiều hàng</td><td class="k">SELECT t.title, d.name FROM b t UNNEST t.destinations d</td></tr>
+          <tr><td>Trả về giá trị trần</td><td class="k">SELECT RAW u.username FROM b u</td></tr>
+          <tr><td>Ghép theo khoá suy ra</td><td class="k">JOIN b2 u ON KEYS ('user::' || t.userId)</td></tr>
+          <tr><td>Gom document con thành mảng</td><td class="k">NEST b2 p ON KEYS t.postIds</td></tr>
+          <tr><td>Thiếu trường hay null</td><td class="k">IFMISSINGORNULL(p.stats.likeCount, 0)</td></tr>
+          <tr><td>Kiểm tra vắng mặt</td><td class="k">WHERE p.deletedAt IS MISSING</td></tr>
+          <tr><td>Giao hai mảng</td><td class="k">ARRAY_INTERSECT(t.tags, $interests)</td></tr>
+          <tr><td>Biến trung gian</td><td class="k">LET score = a * 3 + b * 2</td></tr>
+          <tr><td>Truy vấn có tên</td><td class="k">WITH active AS (SELECT …) SELECT * FROM active</td></tr>
+          <tr><td>Cập nhật một phần</td><td class="k">UPDATE b USE KEYS 'post::1' SET stats.likeCount = stats.likeCount + 1</td></tr>
+          <tr><td>Xem kế hoạch thực thi</td><td class="k">EXPLAIN SELECT …</td></tr>
+          <tr><td>Xin đề xuất index</td><td class="k">ADVISE SELECT …</td></tr>
+          <tr><td>Liệt kê index</td><td class="k">SELECT * FROM system:indexes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>12.2 · Câu hỏi phản biện và cách trả lời</h3>
+
+    <details>
+      <summary>Vì sao không dùng MySQL hay PostgreSQL?</summary>
+      <div class="body"><p>Vì đơn vị dữ liệu của ứng dụng là một document lồng nhau, và chuẩn hoá nó ra 15 bảng khiến mọi thao tác đọc thành một phép lắp ráp. Couchbase cho lưu đúng hình dạng mà ứng dụng dùng, đọc một lần là xong, và vẫn giữ được SQL để truy vấn phức tạp. Nói thêm cho cân bằng: nếu bài toán là giao dịch tài chính với nhiều bất biến chặt chẽ thì hệ quản trị quan hệ vẫn là lựa chọn đúng hơn.</p></div>
+    </details>
+
+    <details>
+      <summary>Couchbase khác MongoDB ở chỗ nào?</summary>
+      <div class="body">
+        <p>Bốn khác biệt đáng nói:</p>
+        <ul>
+          <li><strong>Định tuyến.</strong> SDK Couchbase giữ cluster map và đi thẳng tới node giữ dữ liệu. MongoDB đi qua tiến trình định tuyến <code>mongos</code> — thêm một chặng.</li>
+          <li><strong>Ngôn ngữ truy vấn.</strong> N1QL là SQL thật với JOIN, UNION, hàm cửa sổ. MongoDB dùng aggregation pipeline, cú pháp riêng.</li>
+          <li><strong>Bộ nhớ đệm.</strong> Couchbase có managed cache tích hợp sẵn, thay thế luôn tầng Memcached/Redis mà kiến trúc thường phải thêm.</li>
+          <li><strong>Mở rộng theo chiều dịch vụ.</strong> Data, Query, Index, Search mở rộng độc lập nhau.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Không có lược đồ thì lấy gì đảm bảo toàn vẹn dữ liệu?</summary>
+      <div class="body"><p>Toàn vẹn được đẩy lên tầng ứng dụng, hai lớp: Joi kiểm tra dữ liệu HTTP ở tầng route, và mỗi lớp model (<code>User.validate</code>, <code>Post.validate</code>, <code>Trip.validate</code>) kiểm tra trước khi ghi. Đánh đổi thật sự: một tiến trình khác ghi thẳng vào bucket sẽ vượt qua mọi kiểm tra đó. Couchbase 7.6 có chức năng ràng buộc lược đồ ở tầng máy chủ, nhưng đồ án chưa dùng.</p></div>
+    </details>
+
+    <details>
+      <summary>Xoá một người dùng thì dữ liệu liên quan xử lý thế nào?</summary>
+      <div class="body"><p>Không có <code>ON DELETE CASCADE</code>. Phải xử lý ở tầng ứng dụng: xoá các bài viết của họ, xoá các document quan hệ ở cả hai chiều, giảm bộ đếm của những người liên quan. Ba cách sạch hơn: đánh dấu <code>status: 'deleted'</code> và lọc khi đọc (đồ án làm cách này); dùng Eventing function nghe DCP để dọn dẹp; hoặc gói toàn bộ vào một giao dịch phân tán.</p></div>
+    </details>
+
+    <details>
+      <summary>Nhiều index có hại không?</summary>
+      <div class="body"><p>Có. Mỗi GSI chiếm RAM và đĩa trên Index service, và mỗi lệnh ghi phải lan tới mọi index liên quan qua DCP — nên ghi chậm dần theo số index. 23 index cho một đồ án là hợp lý; điều đáng nói là bốn primary index nên bị xoá ở môi trường thật, còn <code>idx_connections_status</code> có tính chọn lọc rất thấp (gần như mọi quan hệ đều <code>active</code>) nên gần như vô ích.</p></div>
+    </details>
+
+    <details>
+      <summary>Một node hỏng thì sao?</summary>
+      <div class="body"><p>Nếu bucket có replica, cụm phát hiện node mất và <strong>tự chuyển đổi</strong>: các vBucket replica trên node khác được nâng lên active, cluster map được phát lại, client tự chuyển hướng. Dữ liệu đã ghi vào RAM node hỏng mà chưa kịp nhân bản thì mất — đó là lý do có tuỳ chọn durability. Đồ án chạy một node, không replica, nên mất node là mất dữ liệu; đây là lựa chọn của môi trường phát triển.</p></div>
+    </details>
+
+    <details>
+      <summary>Theo định lý CAP thì Couchbase đứng ở đâu?</summary>
+      <div class="body"><p>Trong phạm vi một cụm, Couchbase nghiêng về <strong>CP</strong>: mỗi vBucket chỉ có một bản active, nên đọc theo khoá luôn nhất quán; khi phân mảnh mạng, phần thiểu số ngừng phục vụ thay vì trả dữ liệu cũ. Giữa các cụm ở nơi khác nhau, sao chép liên cụm (XDCR) là bất đồng bộ, tức nghiêng <strong>AP</strong>. Và như mục 07 đã nói, đọc qua chỉ mục là nhất quán cuối cùng theo mặc định nhưng có thể nâng lên theo từng truy vấn.</p></div>
+    </details>
+
+    <details>
+      <summary>Vì sao dùng bốn bucket mà không phải một?</summary>
+      <div class="body"><p>Lý do ban đầu là cô lập tài nguyên: mỗi bucket có hạn mức RAM riêng, nên khối lượng ghi lớn của bài viết không tranh bộ nhớ đệm với dữ liệu người dùng vốn nóng nhất. Nhưng nói thật thì với Couchbase 7, <strong>collection</strong> mới là công cụ đúng cho việc này, và bốn bucket là dấu vết của mô hình 6.x. Nếu làm lại sẽ dùng một bucket với năm collection.</p></div>
+    </details>
+
+    <details>
+      <summary>Đây có phải cơ sở dữ liệu quan hệ trá hình không?</summary>
+      <div class="body"><p>Không, và có ba bằng chứng: dữ liệu con được <em>nhúng</em> chứ không tách bảng (bình luận, lịch trình, lượt thích); quan hệ được mã hoá <em>vào khoá</em> chứ không qua bảng nối có khoá ngoại; và dữ liệu được <em>sao chép có chủ ý</em> để loại bỏ JOIN. Cả ba đều là những việc mà thiết kế quan hệ đúng chuẩn sẽ cấm.</p></div>
+    </details>
+
+    <h3>12.3 · Bảng quy đổi thuật ngữ</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Thuật ngữ</th><th>Nghĩa trong Couchbase</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Bucket</td><td>Đơn vị chứa dữ liệu lớn nhất, có hạn mức RAM và số replica riêng</td></tr>
+          <tr><td class="k">vBucket</td><td>Một trong 1024 mảnh băm của bucket; đơn vị di chuyển khi rebalance</td></tr>
+          <tr><td class="k">Cluster map</td><td>Bảng ánh xạ vBucket → node, do SDK phía client giữ</td></tr>
+          <tr><td class="k">DCP</td><td>Dòng thay đổi nội bộ nuôi replica, index, search và XDCR</td></tr>
+          <tr><td class="k">CAS</td><td>Số 64-bit định danh phiên bản document, dùng cho khoá lạc quan</td></tr>
+          <tr><td class="k">GSI</td><td>Chỉ mục thứ cấp toàn cục, cập nhật bất đồng bộ</td></tr>
+          <tr><td class="k">N1QL / SQL++</td><td>Ngôn ngữ truy vấn kiểu SQL dành cho JSON</td></tr>
+          <tr><td class="k">Sub-document API</td><td>Đọc/ghi theo đường dẫn bên trong document</td></tr>
+          <tr><td class="k">Scan consistency</td><td>Mức bảo đảm độ mới của chỉ mục cho một truy vấn</td></tr>
+          <tr><td class="k">Durability</td><td>Yêu cầu về mức nhân bản/ghi đĩa trước khi xác nhận lệnh ghi</td></tr>
+          <tr><td class="k">Rebalance</td><td>Phân bố lại vBucket khi thêm hoặc bớt node, chạy trực tuyến</td></tr>
+          <tr><td class="k">XDCR</td><td>Sao chép bất đồng bộ giữa hai cụm</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      <p>Travel Network · Express (ESM) + Couchbase Node SDK 4.2 + React/Vite. Mọi đoạn mã và câu truy vấn trong tài liệu này được trích trực tiếp từ mã nguồn đồ án.</p>
+    </footer>
+  </section>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  /* ---------- mục lục ---------- */
+  var titles = [
+    ['s1','Bài toán và lý do rời bỏ bảng'],
+    ['s2','Couchbase hoạt động như thế nào'],
+    ['s3','Mô hình dữ liệu của đồ án'],
+    ['s4','Hai con đường tới dữ liệu'],
+    ['s5','N1QL / SQL++ chuyên sâu'],
+    ['s6','Chỉ mục'],
+    ['s7','Tính nhất quán của chỉ mục'],
+    ['s8','Giao dịch và đồng thời'],
+    ['s9','Phân tích hiệu năng'],
+    ['s10','Vận hành và demo'],
+    ['s11','Hạn chế và hướng phát triển'],
+    ['s12','Phụ lục']
+  ];
+  var list = document.getElementById('tocList');
+  titles.forEach(function (t, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<a href="#' + t[0] + '"><i>' + String(i + 1).padStart(2, '0') + '</i><span>' + t[1] + '</span></a>';
+    list.appendChild(li);
+  });
+  var links = Array.prototype.slice.call(list.querySelectorAll('a'));
+  var secs = titles.map(function (t) { return document.getElementById(t[0]); });
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var i = secs.indexOf(e.target);
+      links.forEach(function (a, j) { a.classList.toggle('on', j === i); });
+    });
+  }, { rootMargin: '-10% 0px -75% 0px' });
+  secs.forEach(function (s) { if (s) obs.observe(s); });
+
+  /* ---------- tô màu cú pháp ---------- */
+  var SQL = 'SELECT|FROM|WHERE|AND|OR|NOT|ORDER BY|GROUP BY|LIMIT|OFFSET|AS|JOIN|ON KEYS|ON|UNION ALL|UNION|IN|BETWEEN|IS|MISSING|NULL|DISTINCT|ARRAY|FOR|END|ANY|EVERY|SATISFIES|UNNEST|NEST|RAW|LET|WITH|CREATE|PRIMARY|INDEX|UPDATE|SET|USE KEYS|EXPLAIN|ADVISE|COUNT|DESC|ASC|BEGIN|TRANSACTION|COMMIT';
+  var JS = 'const|let|var|function|async|await|return|if|else|for|while|try|catch|throw|new|import|from|export|default|class|static|of|typeof|null|undefined|true|false';
+
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function paint(text, lang) {
+    var re;
+    if (lang === 'sql') {
+      re = new RegExp("(--[^\\n]*)|('(?:[^'\\\\]|\\\\.)*')|(\\$[A-Za-z_]\\w*)|\\b(" + SQL + ")\\b|\\b(\\d+(?:\\.\\d+)?)\\b", 'gi');
+    } else if (lang === 'json') {
+      re = new RegExp("(//[^\\n]*)|(\"(?:[^\"\\\\]|\\\\.)*\"\\s*:)|(\"(?:[^\"\\\\]|\\\\.)*\")|\\b(true|false|null)\\b|(-?\\d+(?:\\.\\d+)?)", 'g');
+    } else {
+      re = new RegExp("(//[^\\n]*)|('(?:[^'\\\\]|\\\\.)*'|`(?:[^`\\\\]|\\\\.)*`|\"(?:[^\"\\\\]|\\\\.)*\")|\\b(" + JS + ")\\b|\\b(\\d+(?:\\.\\d+)?)\\b", 'g');
+    }
+    var out = '', last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      out += esc(text.slice(last, m.index));
+      var cls;
+      if (lang === 'sql') {
+        cls = m[1] ? 'tok-com' : m[2] ? 'tok-str' : m[3] ? 'tok-var' : m[4] ? 'tok-kw' : 'tok-num';
+      } else if (lang === 'json') {
+        cls = m[1] ? 'tok-com' : m[2] ? 'tok-fn' : m[3] ? 'tok-str' : m[4] ? 'tok-kw' : 'tok-num';
+      } else {
+        cls = m[1] ? 'tok-com' : m[2] ? 'tok-str' : m[3] ? 'tok-kw' : 'tok-num';
+      }
+      out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    out += esc(text.slice(last));
+    return out;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('pre > code'), function (el) {
+    var cls = el.className || '';
+    var lang = cls.indexOf('lang-sql') > -1 ? 'sql'
+             : cls.indexOf('lang-json') > -1 ? 'json'
+             : cls.indexOf('lang-bash') > -1 ? 'bash' : 'js';
+    if (lang === 'bash') return;
+    el.innerHTML = paint(el.textContent, lang);
+  });
+})();
+</script>
