@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, MessageCircle, MapPin, MoreVertical, Trash2, Send, Edit2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import { postAPI } from '../services/api';
 import { getProfilePhotoUrl, getImageUrl } from '../utils/imageUtils';
 import toast from 'react-hot-toast';
@@ -33,20 +34,20 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
       }
       if (onLikeToggle) onLikeToggle(post.id, !isLiked);
     } catch (error) {
-      toast.error('Failed to update like');
+      toast.error('Không thể cập nhật lượt thích');
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    if (!window.confirm('Bạn có chắc muốn xóa bài viết này?')) return;
     
     setIsDeleting(true);
     try {
       await postAPI.delete(post.id);
-      toast.success('Post deleted');
+      toast.success('Đã xóa bài viết');
       if (onDelete) onDelete(post.id);
     } catch (error) {
-      toast.error('Failed to delete post');
+      toast.error('Xóa bài viết thất bại');
       setIsDeleting(false);
     }
   };
@@ -64,25 +65,25 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
       const newComments = updatedPost?.interactions?.comments || [];
       setComments(newComments);
       setCommentText('');
-      toast.success('Comment added');
+      toast.success('Đã thêm bình luận');
     } catch (error) {
       console.error('Error adding comment:', error);
-      toast.error(error.response?.data?.message || 'Failed to add comment');
+      toast.error(error.response?.data?.message || 'Không thể thêm bình luận');
     } finally {
       setSubmittingComment(false);
     }
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Delete this comment?')) return;
+    if (!window.confirm('Xóa bình luận này?')) return;
 
     try {
       await postAPI.deleteComment(post.id, commentId);
       setComments(prev => prev.filter(c => c.id !== commentId));
-      toast.success('Comment deleted');
+      toast.success('Đã xóa bình luận');
     } catch (error) {
       console.error('Error deleting comment:', error);
-      toast.error('Failed to delete comment');
+      toast.error('Xóa bình luận thất bại');
     }
   };
 
@@ -109,7 +110,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
               {post.authorUsername}
             </p>
             <p className="text-sm text-gray-600">
-              {post.createdAt && formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+              {post.createdAt && formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: vi })}
             </p>
           </div>
         </Link>
@@ -133,7 +134,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
                   className="w-full flex items-center space-x-2 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-lg"
                 >
                   <Edit2 className="w-4 h-4" />
-                  <span>Edit Post</span>
+                  <span>Sửa bài viết</span>
                 </button>
                 <button
                   onClick={handleDelete}
@@ -141,7 +142,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
                   className="w-full flex items-center space-x-2 px-4 py-3 text-red-600 hover:bg-red-50 rounded-b-lg"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>{isDeleting ? 'Deleting...' : 'Delete Post'}</span>
+                  <span>{isDeleting ? 'Đang xóa...' : 'Xóa bài viết'}</span>
                 </button>
               </div>
             )}
@@ -214,7 +215,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
           className={`flex items-center space-x-2 transition-colors ${
             isLiked ? 'text-red-600' : 'hover:text-red-600'
           }`}
-          aria-label={isLiked ? 'Unlike' : 'Like'}
+          aria-label={isLiked ? 'Bỏ thích' : 'Thích'}
         >
           <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
           <span className="text-sm">{likeCount}</span>
@@ -222,7 +223,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
         <button
           onClick={() => setShowComments(!showComments)}
           className="flex items-center space-x-2 hover:text-primary-600 transition-colors"
-          aria-label="Comments"
+          aria-label="Bình luận"
         >
           <MessageCircle className="w-5 h-5" />
           <span className="text-sm">{comments.length || post.stats?.commentCount || 0}</span>
@@ -247,7 +248,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
                       </Link>
                       <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {comment.createdAt && formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                        {comment.createdAt && formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: vi })}
                       </p>
                     </div>
                     
@@ -255,7 +256,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
                       <button
                         onClick={() => handleDeleteComment(comment.id)}
                         className="text-gray-400 hover:text-red-600 transition-colors ml-2"
-                        aria-label="Delete comment"
+                        aria-label="Xóa bình luận"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -272,7 +273,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
               <textarea
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Write a comment..."
+                placeholder="Viết bình luận..."
                 rows={2}
                 className="input resize-none"
                 disabled={submittingComment}
@@ -282,7 +283,7 @@ const PostCard = ({ post, onDelete, onEdit, onLikeToggle, currentUserId }) => {
               type="submit"
               disabled={!commentText.trim() || submittingComment}
               className="btn btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Send comment"
+              aria-label="Gửi bình luận"
             >
               <Send className="w-5 h-5" />
             </button>

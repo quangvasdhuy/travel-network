@@ -26,7 +26,7 @@ export async function createTrip(userId, tripData) {
   if (!validation.valid) {
     throw {
       statusCode: 400,
-      message: 'Invalid trip data',
+      message: 'Dữ liệu chuyến đi không hợp lệ',
       details: validation.errors,
     };
   }
@@ -58,7 +58,7 @@ export async function createTrip(userId, tripData) {
     console.error('Error creating trip:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to create trip',
+      message: 'Tạo chuyến đi thất bại',
     };
   }
 }
@@ -81,7 +81,7 @@ export async function getTripById(tripId, requestingUserId = null) {
     if (trip.visibility === 'private' && trip.userId !== requestingUserId) {
       throw {
         statusCode: 403,
-        message: 'You do not have permission to view this trip',
+        message: 'Bạn không có quyền xem chuyến đi này',
       };
     }
 
@@ -93,7 +93,7 @@ export async function getTripById(tripId, requestingUserId = null) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Trip not found',
+        message: 'Không tìm thấy chuyến đi',
       };
     }
     throw error;
@@ -187,7 +187,7 @@ export async function updateTrip(tripId, userId, updates) {
     if (trip.userId !== userId) {
       throw {
         statusCode: 403,
-        message: 'You do not have permission to update this trip',
+        message: 'Bạn không có quyền sửa chuyến đi này',
       };
     }
 
@@ -199,7 +199,7 @@ export async function updateTrip(tripId, userId, updates) {
       if (new Date(startDate) > new Date(endDate)) {
         throw {
           statusCode: 400,
-          message: 'Start date must be before end date',
+          message: 'Ngày bắt đầu phải trước ngày kết thúc',
         };
       }
     }
@@ -233,13 +233,13 @@ export async function updateTrip(tripId, userId, updates) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Trip not found',
+        message: 'Không tìm thấy chuyến đi',
       };
     }
     console.error('Error updating trip:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to update trip',
+      message: 'Cập nhật chuyến đi thất bại',
     };
   }
 }
@@ -263,7 +263,7 @@ export async function deleteTrip(tripId, userId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Trip not found',
+        message: 'Không tìm thấy chuyến đi',
       };
     }
     throw error;
@@ -273,7 +273,7 @@ export async function deleteTrip(tripId, userId) {
   if (existingTrip.userId !== userId) {
     throw {
       statusCode: 403,
-      message: 'You do not have permission to delete this trip',
+      message: 'Bạn không có quyền xóa chuyến đi này',
     };
   }
 
@@ -309,7 +309,7 @@ export async function updateTripStatus(tripId, userId, newStatus) {
   if (!validStatuses.includes(newStatus)) {
     throw {
       statusCode: 400,
-      message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+      message: `Trạng thái không hợp lệ. Phải là một trong: ${validStatuses.join(', ')}`,
     };
   }
 

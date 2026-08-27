@@ -59,11 +59,11 @@ class ErrorBoundary extends Component {
               </div>
               
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Oops! Something went wrong
+                Rất tiếc! Đã có lỗi xảy ra
               </h1>
               
               <p className="text-gray-600 mb-6">
-                We're sorry, but something unexpected happened. Please try refreshing the page or go back to the home page.
+                Xin lỗi, đã xảy ra sự cố ngoài ý muốn. Vui lòng thử tải lại trang hoặc quay về trang chủ.
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
@@ -73,7 +73,7 @@ class ErrorBoundary extends Component {
                   </p>
                   {this.state.errorInfo && (
                     <details className="text-xs text-red-700">
-                      <summary className="cursor-pointer font-medium mb-2">Stack trace</summary>
+                      <summary className="cursor-pointer font-medium mb-2">Chi tiết lỗi</summary>
                       <pre className="whitespace-pre-wrap">
                         {this.state.errorInfo.componentStack}
                       </pre>
@@ -88,7 +88,7 @@ class ErrorBoundary extends Component {
                   className="btn btn-primary flex items-center justify-center space-x-2"
                 >
                   <RefreshCw className="w-5 h-5" />
-                  <span>Try Again</span>
+                  <span>Thử lại</span>
                 </button>
                 
                 <button
@@ -96,7 +96,7 @@ class ErrorBoundary extends Component {
                   className="btn btn-secondary flex items-center justify-center space-x-2"
                 >
                   <Home className="w-5 h-5" />
-                  <span>Go Home</span>
+                  <span>Về trang chủ</span>
                 </button>
               </div>
             </div>

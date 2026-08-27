@@ -5,38 +5,38 @@ const LandingPage = () => {
   const features = [
     {
       icon: Users,
-      title: 'Connect with Travelers',
-      description: 'Build your travel network and share experiences with fellow adventurers',
+      title: 'Kết nối với người mê xê dịch',
+      description: 'Xây dựng mạng lưới bạn đồng hành và chia sẻ trải nghiệm cùng nhau',
       color: 'from-blue-500 to-blue-600',
     },
     {
       icon: MapPin,
-      title: 'Plan Amazing Trips',
-      description: 'Create detailed itineraries and discover destinations worldwide',
+      title: 'Lên kế hoạch cho chuyến đi',
+      description: 'Tạo lịch trình chi tiết và khám phá điểm đến khắp thế giới',
       color: 'from-green-500 to-green-600',
     },
     {
       icon: Camera,
-      title: 'Share Your Journey',
-      description: 'Post photos, stories, and tips from your travels',
+      title: 'Chia sẻ hành trình',
+      description: 'Đăng ảnh, câu chuyện và mẹo hay từ những chuyến đi của bạn',
       color: 'from-purple-500 to-purple-600',
     },
     {
       icon: TrendingUp,
-      title: 'Discover Trending Spots',
-      description: 'Find popular destinations and hidden gems',
+      title: 'Khám phá điểm đến hot',
+      description: 'Tìm những nơi đang được yêu thích và cả những viên ngọc ẩn',
       color: 'from-orange-500 to-orange-600',
     },
     {
       icon: Globe,
-      title: 'Explore the World',
-      description: 'Browse curated destinations and travel inspiration',
+      title: 'Khám phá thế giới',
+      description: 'Duyệt các điểm đến chọn lọc và tìm cảm hứng du lịch',
       color: 'from-pink-500 to-pink-600',
     },
     {
       icon: Heart,
-      title: 'Engage & Inspire',
-      description: 'Like, comment, and get inspired by amazing travel stories',
+      title: 'Tương tác & truyền cảm hứng',
+      description: 'Thích, bình luận và lấy cảm hứng từ những câu chuyện du lịch tuyệt vời',
       color: 'from-red-500 to-red-600',
     },
   ];
@@ -49,7 +49,7 @@ const LandingPage = () => {
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2000&auto=format&fit=crop"
-            alt="Travel Background"
+            alt="Ảnh nền du lịch"
             className="w-full h-full object-cover"
           />
           {/* Gradient Overlay */}
@@ -70,17 +70,17 @@ const LandingPage = () => {
 
             {/* Main Heading */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Your Travel Story
+              Câu chuyện du lịch của bạn
               <br />
               <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 text-transparent bg-clip-text">
-                Starts Here
+                Bắt đầu từ đây
               </span>
             </h1>
 
             {/* Subheading */}
             <p className="text-xl md:text-2xl mb-10 text-gray-100 max-w-2xl mx-auto">
-              Connect with travelers worldwide. Share your adventures. 
-              Discover your next destination.
+              Kết nối với những người mê du lịch trên khắp thế giới. Chia sẻ hành trình của bạn.
+              Và tìm ra điểm đến tiếp theo.
             </p>
 
             {/* CTA Buttons */}
@@ -89,14 +89,14 @@ const LandingPage = () => {
                 to="/register"
                 className="group btn bg-white text-primary-600 hover:bg-gray-100 px-10 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all hover:scale-105"
               >
-                Start Your Journey
+                Bắt đầu hành trình
                 <Plane className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/login"
                 className="btn border-2 border-white/80 backdrop-blur-sm bg-white/10 text-white hover:bg-white/20 px-10 py-4 text-lg font-semibold shadow-xl transition-all"
               >
-                Sign In
+                Đăng nhập
               </Link>
             </div>
 
@@ -104,15 +104,15 @@ const LandingPage = () => {
             <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="backdrop-blur-sm bg-white/10 rounded-lg p-4">
                 <div className="text-3xl font-bold mb-1">1000+</div>
-                <div className="text-sm text-gray-200">Travelers</div>
+                <div className="text-sm text-gray-200">Thành viên</div>
               </div>
               <div className="backdrop-blur-sm bg-white/10 rounded-lg p-4">
                 <div className="text-3xl font-bold mb-1">50+</div>
-                <div className="text-sm text-gray-200">Destinations</div>
+                <div className="text-sm text-gray-200">Điểm đến</div>
               </div>
               <div className="backdrop-blur-sm bg-white/10 rounded-lg p-4">
                 <div className="text-3xl font-bold mb-1">500+</div>
-                <div className="text-sm text-gray-200">Stories</div>
+                <div className="text-sm text-gray-200">Câu chuyện</div>
               </div>
             </div>
           </div>
@@ -129,10 +129,10 @@ const LandingPage = () => {
         <div className="container-custom">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Everything You Need
+              Tất cả những gì bạn cần
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              All the tools to connect, plan, and share your travel adventures
+              Đầy đủ công cụ để kết nối, lên kế hoạch và chia sẻ hành trình của bạn
             </p>
           </div>
 
@@ -165,10 +165,10 @@ const LandingPage = () => {
         <div className="container-custom">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Start in 3 Simple Steps
+              Bắt đầu chỉ với 3 bước
             </h2>
             <p className="text-xl text-gray-600">
-              Join the community in minutes
+              Tham gia cộng đồng chỉ trong vài phút
             </p>
           </div>
 
@@ -177,24 +177,24 @@ const LandingPage = () => {
               <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-white">1</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Create Account</h3>
-              <p className="text-gray-600">Sign up for free in seconds and set up your traveler profile</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Tạo tài khoản</h3>
+              <p className="text-gray-600">Đăng ký miễn phí trong vài giây và thiết lập hồ sơ của bạn</p>
             </div>
 
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-white">2</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Connect & Share</h3>
-              <p className="text-gray-600">Follow travelers, share your trips, and post your travel photos</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Kết nối & chia sẻ</h3>
+              <p className="text-gray-600">Theo dõi mọi người, chia sẻ chuyến đi và đăng ảnh du lịch của bạn</p>
             </div>
 
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-3xl font-bold text-white">3</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Discover & Explore</h3>
-              <p className="text-gray-600">Find inspiration, plan your next trip, and explore the world</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Tìm kiếm & khám phá</h3>
+              <p className="text-gray-600">Tìm cảm hứng, lên kế hoạch cho chuyến đi kế tiếp và khám phá thế giới</p>
             </div>
           </div>
         </div>
@@ -206,7 +206,7 @@ const LandingPage = () => {
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2000&auto=format&fit=crop"
-            alt="Travel CTA"
+            alt="Ảnh kêu gọi hành động"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary-900/95 to-blue-900/95"></div>
@@ -215,16 +215,16 @@ const LandingPage = () => {
         {/* Content */}
         <div className="relative z-10 container-custom text-center text-white">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Start Your Adventure?
+            Sẵn sàng cho chuyến phiêu lưu của bạn?
           </h2>
           <p className="text-xl mb-10 text-gray-100 max-w-2xl mx-auto">
-            Join thousands of travelers sharing their stories and discovering new destinations
+            Tham gia cùng hàng nghìn người đang chia sẻ câu chuyện và khám phá những điểm đến mới
           </p>
           <Link
             to="/register"
             className="inline-block btn bg-white text-primary-600 hover:bg-gray-100 px-12 py-4 text-lg font-semibold shadow-2xl hover:shadow-3xl transition-all hover:scale-105"
           >
-            Create Free Account
+            Tạo tài khoản miễn phí
             <Plane className="inline-block ml-2 w-5 h-5" />
           </Link>
         </div>
@@ -241,37 +241,37 @@ const LandingPage = () => {
                 <span className="text-xl font-bold text-white">TravelNet</span>
               </div>
               <p className="text-sm text-gray-400">
-                Your global travel community for sharing adventures and discovering new destinations.
+                Cộng đồng du lịch toàn cầu để chia sẻ hành trình và khám phá những điểm đến mới.
               </p>
             </div>
 
             {/* Product */}
             <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
+              <h4 className="text-white font-semibold mb-4">Sản phẩm</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/register" className="hover:text-primary-400 transition-colors">Get Started</Link></li>
-                <li><Link to="/trips" className="hover:text-primary-400 transition-colors">Browse Trips</Link></li>
-                <li><Link to="/search" className="hover:text-primary-400 transition-colors">Find Travelers</Link></li>
+                <li><Link to="/register" className="hover:text-primary-400 transition-colors">Bắt đầu</Link></li>
+                <li><Link to="/trips" className="hover:text-primary-400 transition-colors">Xem chuyến đi</Link></li>
+                <li><Link to="/search" className="hover:text-primary-400 transition-colors">Tìm bạn đồng hành</Link></li>
               </ul>
             </div>
 
             {/* Company */}
             <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
+              <h4 className="text-white font-semibold mb-4">Công ty</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-primary-400 transition-colors">About Us</a></li>
+                <li><a href="#" className="hover:text-primary-400 transition-colors">Về chúng tôi</a></li>
                 <li><a href="#" className="hover:text-primary-400 transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary-400 transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-primary-400 transition-colors">Tuyển dụng</a></li>
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h4 className="text-white font-semibold mb-4">Support</h4>
+              <h4 className="text-white font-semibold mb-4">Hỗ trợ</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-primary-400 transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-primary-400 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary-400 transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-primary-400 transition-colors">Trung tâm trợ giúp</a></li>
+                <li><a href="#" className="hover:text-primary-400 transition-colors">Chính sách bảo mật</a></li>
+                <li><a href="#" className="hover:text-primary-400 transition-colors">Điều khoản sử dụng</a></li>
               </ul>
             </div>
           </div>
@@ -279,7 +279,7 @@ const LandingPage = () => {
           {/* Bottom Bar */}
           <div className="border-t border-gray-800 pt-8 text-center">
             <p className="text-sm text-gray-400">
-              © 2024 TravelNet. All rights reserved. Made with ❤️ for travelers worldwide.
+              © 2024 TravelNet. Bảo lưu mọi quyền. Được tạo với ❤️ dành cho những người yêu du lịch.
             </p>
           </div>
         </div>

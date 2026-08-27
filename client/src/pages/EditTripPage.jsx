@@ -52,7 +52,7 @@ const EditTripPage = () => {
       });
     } catch (error) {
       console.error('Error loading trip:', error);
-      toast.error('Failed to load trip');
+      toast.error('Không tải được chuyến đi');
       navigate('/trips');
     } finally {
       setLoading(false);
@@ -125,19 +125,19 @@ const EditTripPage = () => {
     const newErrors = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Trip name is required';
+      newErrors.title = 'Vui lòng nhập tên chuyến đi';
     }
 
     if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+      newErrors.startDate = 'Vui lòng chọn ngày bắt đầu';
     }
 
     if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
+      newErrors.endDate = 'Vui lòng chọn ngày kết thúc';
     }
 
     if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
-      newErrors.endDate = 'End date must be after start date';
+      newErrors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
     }
 
     setErrors(newErrors);
@@ -169,11 +169,11 @@ const EditTripPage = () => {
       };
 
       await tripAPI.update(id, tripData);
-      toast.success('Trip updated successfully!');
+      toast.success('Cập nhật chuyến đi thành công!');
       navigate(`/trips/${id}`);
     } catch (error) {
       console.error('Error updating trip:', error);
-      toast.error(error.response?.data?.message || 'Failed to update trip');
+      toast.error(error.response?.data?.message || 'Cập nhật chuyến đi thất bại');
     } finally {
       setSaving(false);
     }
@@ -198,21 +198,21 @@ const EditTripPage = () => {
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span>Back to Trip</span>
+            <span>Quay lại chuyến đi</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Trip</h1>
-          <p className="text-gray-600">Update your travel plans</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Chỉnh sửa chuyến đi</h1>
+          <p className="text-gray-600">Cập nhật kế hoạch chuyến đi của bạn</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="card p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Basic Information</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Thông tin cơ bản</h2>
 
             <div className="space-y-4">
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                  Trip Name *
+                  Tên chuyến đi *
                 </label>
                 <input
                   type="text"
@@ -221,7 +221,7 @@ const EditTripPage = () => {
                   value={formData.title}
                   onChange={handleChange}
                   className={`input ${errors.title ? 'border-red-500' : ''}`}
-                  placeholder="e.g., Summer Europe Adventure"
+                  placeholder="VD: Hành trình châu Âu mùa hè"
                 />
                 {errors.title && (
                   <p className="mt-1 text-sm text-red-600">{errors.title}</p>
@@ -230,7 +230,7 @@ const EditTripPage = () => {
 
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  Mô tả
                 </label>
                 <textarea
                   id="description"
@@ -239,14 +239,14 @@ const EditTripPage = () => {
                   onChange={handleChange}
                   rows={4}
                   className="input"
-                  placeholder="Describe your trip..."
+                  placeholder="Mô tả về chuyến đi của bạn..."
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
+                    Trạng thái
                   </label>
                   <select
                     id="status"
@@ -255,16 +255,16 @@ const EditTripPage = () => {
                     onChange={handleChange}
                     className="input"
                   >
-                    <option value="planning">Planning</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
+                    <option value="planning">Đang lên kế hoạch</option>
+                    <option value="upcoming">Sắp diễn ra</option>
+                    <option value="ongoing">Đang diễn ra</option>
+                    <option value="completed">Đã hoàn thành</option>
                   </select>
                 </div>
 
                 <div>
                   <label htmlFor="visibility" className="block text-sm font-medium text-gray-700 mb-2">
-                    Visibility
+                    Quyền xem
                   </label>
                   <select
                     id="visibility"
@@ -273,9 +273,9 @@ const EditTripPage = () => {
                     onChange={handleChange}
                     className="input"
                   >
-                    <option value="public">Public</option>
-                    <option value="connections">Connections Only</option>
-                    <option value="private">Private</option>
+                    <option value="public">Công khai</option>
+                    <option value="connections">Chỉ người kết nối</option>
+                    <option value="private">Riêng tư</option>
                   </select>
                 </div>
               </div>
@@ -286,13 +286,13 @@ const EditTripPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <Calendar className="w-5 h-5 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Travel Dates</h2>
+              <h2 className="text-xl font-bold text-gray-900">Thời gian</h2>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date *
+                  Ngày bắt đầu *
                 </label>
                 <input
                   type="date"
@@ -309,7 +309,7 @@ const EditTripPage = () => {
 
               <div>
                 <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date *
+                  Ngày kết thúc *
                 </label>
                 <input
                   type="date"
@@ -330,12 +330,12 @@ const EditTripPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <MapPin className="w-5 h-5 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Destinations</h2>
+              <h2 className="text-xl font-bold text-gray-900">Điểm đến</h2>
             </div>
 
             <div className="mb-4">
               <label htmlFor="destination-search" className="block text-sm font-medium text-gray-700 mb-2">
-                Search Destinations
+                Tìm điểm đến
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -345,7 +345,7 @@ const EditTripPage = () => {
                   value={destinationQuery}
                   onChange={handleDestinationSearch}
                   className="input pl-10"
-                  placeholder="Search for destinations..."
+                  placeholder="Nhập tên điểm đến..."
                 />
               </div>
 
@@ -371,7 +371,7 @@ const EditTripPage = () => {
             {formData.destinations.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">
-                  Selected Destinations ({formData.destinations.length})
+                  Điểm đến đã chọn ({formData.destinations.length})
                 </p>
                 <div className="space-y-2">
                   {formData.destinations.map((destId) => (
@@ -398,13 +398,13 @@ const EditTripPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <DollarSign className="w-5 h-5 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Budget</h2>
+              <h2 className="text-xl font-bold text-gray-900">Ngân sách</h2>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="budget.currency" className="block text-sm font-medium text-gray-700 mb-2">
-                  Currency
+                  Đơn vị tiền tệ
                 </label>
                 <select
                   id="budget.currency"
@@ -423,7 +423,7 @@ const EditTripPage = () => {
 
               <div>
                 <label htmlFor="budget.estimated" className="block text-sm font-medium text-gray-700 mb-2">
-                  Estimated Budget
+                  Ngân sách dự kiến
                 </label>
                 <input
                   type="number"
@@ -450,12 +450,12 @@ const EditTripPage = () => {
               {saving ? (
                 <>
                   <LoadingSpinner size="small" />
-                  <span>Saving...</span>
+                  <span>Đang lưu...</span>
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  <span>Save Changes</span>
+                  <span>Lưu thay đổi</span>
                 </>
               )}
             </button>
@@ -464,7 +464,7 @@ const EditTripPage = () => {
               onClick={() => navigate(`/trips/${id}`)}
               className="btn btn-secondary"
             >
-              Cancel
+              Hủy
             </button>
           </div>
         </form>

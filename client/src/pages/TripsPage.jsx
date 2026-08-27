@@ -7,6 +7,16 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { Plus, MapPin } from 'lucide-react';
 
+const statusLabels = {
+  all: 'Tất cả',
+  planning: 'Đang lên kế hoạch',
+  upcoming: 'Sắp diễn ra',
+  ongoing: 'Đang diễn ra',
+  completed: 'Đã hoàn thành',
+  active: 'Đang diễn ra',
+  cancelled: 'Đã hủy',
+};
+
 const TripsPage = () => {
   const { user } = useAuth();
   const [trips, setTrips] = useState([]);
@@ -31,7 +41,7 @@ const TripsPage = () => {
       setTrips(tripsData);
     } catch (error) {
       console.error('Error loading trips:', error);
-      toast.error('Failed to load trips');
+      toast.error('Không tải được danh sách chuyến đi');
       setTrips([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -39,15 +49,15 @@ const TripsPage = () => {
   };
 
   const handleDeleteTrip = async (tripId) => {
-    if (!window.confirm('Are you sure you want to delete this trip?')) return;
+    if (!window.confirm('Bạn có chắc muốn xóa chuyến đi này?')) return;
 
     try {
       await tripAPI.delete(tripId);
       setTrips(prev => prev.filter(t => t.id !== tripId));
-      toast.success('Trip deleted successfully');
+      toast.success('Đã xóa chuyến đi');
     } catch (error) {
       console.error('Error deleting trip:', error);
-      toast.error('Failed to delete trip');
+      toast.error('Xóa chuyến đi thất bại');
     }
   };
 
@@ -67,15 +77,15 @@ const TripsPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Trips</h1>
-            <p className="text-gray-600">Plan and manage your travel adventures</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Chuyến đi của tôi</h1>
+            <p className="text-gray-600">Lên kế hoạch và quản lý các chuyến đi của bạn</p>
           </div>
           <Link
             to="/trips/create"
             className="btn btn-primary flex items-center space-x-2"
           >
             <Plus className="w-5 h-5" />
-            <span>Create Trip</span>
+            <span>Tạo chuyến đi</span>
           </Link>
         </div>
 
@@ -91,7 +101,7 @@ const TripsPage = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {statusLabels[status]}
             </button>
           ))}
         </div>
@@ -101,14 +111,14 @@ const TripsPage = () => {
           <div className="card p-12 text-center">
             <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {filter === 'all' ? 'No trips yet' : `No ${filter} trips`}
+              {filter === 'all' ? 'Chưa có chuyến đi nào' : `Không có chuyến đi ${statusLabels[filter].toLowerCase()}`}
             </h3>
             <p className="text-gray-600 mb-6">
-              Start planning your next adventure!
+              Hãy bắt đầu lên kế hoạch cho chuyến đi tiếp theo!
             </p>
             <Link to="/trips/create" className="btn btn-primary inline-flex items-center space-x-2">
               <Plus className="w-5 h-5" />
-              <span>Create Your First Trip</span>
+              <span>Tạo chuyến đi đầu tiên</span>
             </Link>
           </div>
         ) : (

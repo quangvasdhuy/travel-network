@@ -36,7 +36,7 @@ router.post('/register', validate(schemas.register), asyncHandler(async (req, re
   res.status(201).json({
     success: true,
     data: result,
-    message: 'User registered successfully',
+    message: 'Đăng ký thành công',
   });
 }));
 
@@ -59,7 +59,7 @@ router.post('/login', validate(schemas.login), asyncHandler(async (req, res) => 
   res.status(200).json({
     success: true,
     data: result,
-    message: 'Login successful',
+    message: 'Đăng nhập thành công',
   });
 }));
 
@@ -78,7 +78,7 @@ router.post('/refresh', validate(schemas.refreshToken), asyncHandler(async (req,
   res.status(200).json({
     success: true,
     data: result,
-    message: 'Token refreshed successfully',
+    message: 'Làm mới token thành công',
   });
 }));
 
@@ -113,7 +113,7 @@ router.post('/logout', authenticate, asyncHandler(async (req, res) => {
   
   res.status(200).json({
     success: true,
-    message: 'Logout successful',
+    message: 'Đăng xuất thành công',
   });
 }));
 
@@ -131,7 +131,7 @@ router.post('/verify-email', validate(schemas.verifyEmail), asyncHandler(async (
 
   res.status(200).json({
     success: true,
-    message: 'Email verified successfully',
+    message: 'Xác thực email thành công',
   });
 }));
 

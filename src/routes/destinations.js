@@ -177,7 +177,7 @@ router.post('/', authenticate, validate(destinationSchemas.create), asyncHandler
   res.status(201).json({
     success: true,
     data: { destination },
-    message: 'Destination created successfully',
+    message: 'Tạo điểm đến thành công',
   });
 }));
 
@@ -236,7 +236,7 @@ router.patch('/:countryCode/:slug', authenticate, validate(destinationSchemas.up
   res.status(200).json({
     success: true,
     data: { destination },
-    message: 'Destination updated successfully',
+    message: 'Cập nhật điểm đến thành công',
   });
 }));
 
@@ -260,7 +260,7 @@ router.delete('/:countryCode/:slug', authenticate, asyncHandler(async (req, res)
 
   res.status(200).json({
     success: true,
-    message: 'Destination deleted successfully',
+    message: 'Xóa điểm đến thành công',
   });
 }));
 

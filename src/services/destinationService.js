@@ -18,7 +18,7 @@ export async function createDestination(destinationData) {
   if (!validation.valid) {
     throw {
       statusCode: 400,
-      message: 'Invalid destination data',
+      message: 'Dữ liệu điểm đến không hợp lệ',
       details: validation.errors,
     };
   }
@@ -38,7 +38,7 @@ export async function createDestination(destinationData) {
       await collection.get(key);
       throw {
         statusCode: 409,
-        message: 'Destination already exists with this country code and name',
+        message: 'Điểm đến với mã quốc gia và tên này đã tồn tại',
       };
     } catch (error) {
       if (error.name !== 'DocumentNotFoundError') {
@@ -54,7 +54,7 @@ export async function createDestination(destinationData) {
     console.error('Error creating destination:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to create destination',
+      message: 'Tạo điểm đến thất bại',
     };
   }
 }
@@ -75,7 +75,7 @@ export async function getDestinationById(destinationId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Destination not found',
+        message: 'Không tìm thấy điểm đến',
       };
     }
     throw error;
@@ -94,7 +94,7 @@ export async function getDestinationBySlug(countryCode, slug) {
   if (!destination) {
     throw {
       statusCode: 404,
-      message: 'Destination not found',
+      message: 'Không tìm thấy điểm đến',
     };
   }
 
@@ -161,7 +161,7 @@ export async function getAllDestinations(filters = {}) {
     console.error('Error fetching destinations:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to fetch destinations',
+      message: 'Không tải được danh sách điểm đến',
     };
   }
 }
@@ -232,7 +232,7 @@ export async function updateDestination(countryCode, slug, updates) {
   if (mutations.length === 0) {
     throw {
       statusCode: 400,
-      message: 'No valid fields to update',
+      message: 'Không có trường hợp lệ nào để cập nhật',
     };
   }
 
@@ -253,7 +253,7 @@ export async function updateDestination(countryCode, slug, updates) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Destination not found',
+        message: 'Không tìm thấy điểm đến',
       };
     }
     throw error;
@@ -278,7 +278,7 @@ export async function deleteDestination(countryCode, slug) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Destination not found',
+        message: 'Không tìm thấy điểm đến',
       };
     }
     throw error;
@@ -337,7 +337,7 @@ export async function updateDestinationStats(destinationId, statsUpdate) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Destination not found',
+        message: 'Không tìm thấy điểm đến',
       };
     }
     throw error;

@@ -23,14 +23,14 @@ export async function registerUser(userData) {
   if (!email || !username || !password) {
     throw {
       statusCode: 400,
-      message: 'Email, username, and password are required',
+      message: 'Email, tên đăng nhập và mật khẩu là bắt buộc',
     };
   }
 
   if (password.length < 8) {
     throw {
       statusCode: 400,
-      message: 'Password must be at least 8 characters long',
+      message: 'Mật khẩu phải có ít nhất 8 ký tự',
     };
   }
 
@@ -39,7 +39,7 @@ export async function registerUser(userData) {
   if (existingEmail) {
     throw {
       statusCode: 409,
-      message: 'Email already registered',
+      message: 'Email này đã được đăng ký',
     };
   }
 
@@ -48,7 +48,7 @@ export async function registerUser(userData) {
   if (existingUsername) {
     throw {
       statusCode: 409,
-      message: 'Username already taken',
+      message: 'Tên đăng nhập đã tồn tại',
     };
   }
 
@@ -69,7 +69,7 @@ export async function registerUser(userData) {
   if (!validation.valid) {
     throw {
       statusCode: 400,
-      message: 'Invalid user data',
+      message: 'Dữ liệu người dùng không hợp lệ',
       details: validation.errors,
     };
   }
@@ -84,7 +84,7 @@ export async function registerUser(userData) {
     console.error('Error creating user:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to create user',
+      message: 'Tạo người dùng thất bại',
     };
   }
 
@@ -111,7 +111,7 @@ export async function loginUser(credentials) {
   if (!emailOrUsername || !password) {
     throw {
       statusCode: 400,
-      message: 'Email/username and password are required',
+      message: 'Email/tên đăng nhập và mật khẩu là bắt buộc',
     };
   }
 
@@ -125,7 +125,7 @@ export async function loginUser(credentials) {
   if (!userDoc) {
     throw {
       statusCode: 401,
-      message: 'Invalid credentials',
+      message: 'Email/tên đăng nhập hoặc mật khẩu không đúng',
     };
   }
 
@@ -135,7 +135,7 @@ export async function loginUser(credentials) {
   if (user.status !== 'active') {
     throw {
       statusCode: 403,
-      message: 'Account is not active',
+      message: 'Tài khoản chưa được kích hoạt',
     };
   }
 
@@ -145,7 +145,7 @@ export async function loginUser(credentials) {
   if (!isPasswordValid) {
     throw {
       statusCode: 401,
-      message: 'Invalid credentials',
+      message: 'Email/tên đăng nhập hoặc mật khẩu không đúng',
     };
   }
 
@@ -187,7 +187,7 @@ export async function refreshAccessToken(refreshToken) {
   if (!refreshToken) {
     throw {
       statusCode: 400,
-      message: 'Refresh token is required',
+      message: 'Thiếu refresh token',
     };
   }
 
@@ -198,14 +198,14 @@ export async function refreshAccessToken(refreshToken) {
   } catch (error) {
     throw {
       statusCode: 401,
-      message: 'Invalid or expired refresh token',
+      message: 'Refresh token không hợp lệ hoặc đã hết hạn',
     };
   }
 
   if (decoded.type !== 'refresh') {
     throw {
       statusCode: 401,
-      message: 'Invalid token type',
+      message: 'Loại token không hợp lệ',
     };
   }
 
@@ -220,7 +220,7 @@ export async function refreshAccessToken(refreshToken) {
     if (user.status !== 'active') {
       throw {
         statusCode: 403,
-        message: 'Account is not active',
+        message: 'Tài khoản chưa được kích hoạt',
       };
     }
 
@@ -232,7 +232,7 @@ export async function refreshAccessToken(refreshToken) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 401,
-        message: 'User not found',
+        message: 'Không tìm thấy người dùng',
       };
     }
     throw error;
@@ -283,7 +283,7 @@ export async function verifyEmail(token) {
   if (!token) {
     throw {
       statusCode: 400,
-      message: 'Verification token is required',
+      message: 'Thiếu mã xác thực',
     };
   }
 
@@ -309,7 +309,7 @@ export async function verifyEmail(token) {
   if (result.rows.length === 0) {
     throw {
       statusCode: 400,
-      message: 'Invalid or expired verification token',
+      message: 'Mã xác thực không hợp lệ hoặc đã hết hạn',
     };
   }
 

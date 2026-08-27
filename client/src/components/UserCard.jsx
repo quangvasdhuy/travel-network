@@ -42,7 +42,7 @@ const UserCard = ({ user, showFollowButton = false, onFollowToggle, isFollowing 
             }}
             className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'} text-sm px-4 py-1`}
           >
-            {isFollowing ? 'Unfollow' : 'Follow'}
+            {isFollowing ? 'Bỏ theo dõi' : 'Theo dõi'}
           </button>
         )}
       </div>
@@ -55,8 +55,8 @@ const UserCard = ({ user, showFollowButton = false, onFollowToggle, isFollowing 
       
       {user.stats && (
         <div className="flex items-center space-x-4 mt-3 text-xs text-gray-500">
-          <span>{user.stats.postCount || 0} posts</span>
-          <span>{user.stats.followerCount || 0} followers</span>
+          <span>{user.stats.postCount || 0} bài viết</span>
+          <span>{user.stats.followerCount || 0} người theo dõi</span>
         </div>
       )}
     </div>

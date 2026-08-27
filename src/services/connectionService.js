@@ -19,7 +19,7 @@ export async function followUser(followerId, followingId, followerUsername, foll
   if (followerId === followingId) {
     throw {
       statusCode: 400,
-      message: 'You cannot follow yourself',
+      message: 'Bạn không thể tự theo dõi chính mình',
     };
   }
 
@@ -33,7 +33,7 @@ export async function followUser(followerId, followingId, followerUsername, foll
     // Document tồn tại → đã follow rồi
     throw {
       statusCode: 409,
-      message: 'You are already following this user',
+      message: 'Bạn đã theo dõi người dùng này rồi',
     };
   } catch (error) {
     if (error.statusCode === 409) throw error;
@@ -54,7 +54,7 @@ export async function followUser(followerId, followingId, followerUsername, foll
   if (!validation.valid) {
     throw {
       statusCode: 400,
-      message: 'Invalid connection data',
+      message: 'Dữ liệu kết nối không hợp lệ',
       details: validation.errors,
     };
   }
@@ -72,13 +72,13 @@ export async function followUser(followerId, followingId, followerUsername, foll
     if (error.name === 'DocumentExistsError') {
       throw {
         statusCode: 409,
-        message: 'You are already following this user',
+        message: 'Bạn đã theo dõi người dùng này rồi',
       };
     }
 
     throw {
       statusCode: 500,
-      message: 'Failed to follow user',
+      message: 'Theo dõi người dùng thất bại',
     };
   }
 }
@@ -103,7 +103,7 @@ export async function unfollowUser(followerId, followingId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'You are not following this user',
+        message: 'Bạn chưa theo dõi người dùng này',
       };
     }
     throw error;

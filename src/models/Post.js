@@ -67,15 +67,15 @@ export class Post {
     const errors = [];
 
     if (!data.authorId) {
-      errors.push('Author ID is required');
+      errors.push('Thiếu ID tác giả');
     }
 
     if (!data.content?.text && (!data.content?.media || data.content.media.length === 0)) {
-      errors.push('Post must have text content or media');
+      errors.push('Bài viết phải có nội dung văn bản hoặc hình ảnh');
     }
 
     if (data.content?.text && data.content.text.length > 5000) {
-      errors.push('Post text cannot exceed 5000 characters');
+      errors.push('Nội dung bài viết không được vượt quá 5000 ký tự');
     }
 
     return {

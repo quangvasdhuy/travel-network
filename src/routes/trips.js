@@ -90,7 +90,7 @@ router.post('/', authenticate, validate(tripSchemas.create), asyncHandler(async 
   res.status(201).json({
     success: true,
     data: { trip },
-    message: 'Trip created successfully',
+    message: 'Tạo chuyến đi thành công',
   });
 }));
 
@@ -188,7 +188,7 @@ router.patch('/:id', authenticate, validate(tripSchemas.update), asyncHandler(as
   res.status(200).json({
     success: true,
     data: { trip },
-    message: 'Trip updated successfully',
+    message: 'Cập nhật chuyến đi thành công',
   });
 }));
 
@@ -207,7 +207,7 @@ router.delete('/:id', authenticate, asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Trip deleted successfully',
+    message: 'Xóa chuyến đi thành công',
   });
 }));
 
@@ -229,7 +229,7 @@ router.patch('/:id/status', authenticate, validate(tripSchemas.updateStatus), as
   res.status(200).json({
     success: true,
     data: { trip },
-    message: `Trip status updated to ${status}`,
+    message: 'Cập nhật trạng thái chuyến đi thành công',
   });
 }));
 
@@ -323,7 +323,7 @@ router.patch('/:id', authenticate, validate(tripSchemas.update), asyncHandler(as
   res.status(200).json({
     success: true,
     data: { trip },
-    message: 'Trip updated successfully',
+    message: 'Cập nhật chuyến đi thành công',
   });
 }));
 
@@ -342,6 +342,6 @@ router.delete('/:id', authenticate, asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Trip deleted successfully',
+    message: 'Xóa chuyến đi thành công',
   });
 }));

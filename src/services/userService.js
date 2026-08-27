@@ -24,7 +24,7 @@ export async function getUserProfile(userId, isOwnProfile = false) {
     if (user.status !== 'active') {
       throw {
         statusCode: 404,
-        message: 'User not found',
+        message: 'Không tìm thấy người dùng',
       };
     }
 
@@ -60,7 +60,7 @@ export async function getUserProfile(userId, isOwnProfile = false) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'User not found',
+        message: 'Không tìm thấy người dùng',
       };
     }
     throw error;
@@ -78,7 +78,7 @@ export async function getUserByUsername(username) {
   if (!userDoc) {
     throw {
       statusCode: 404,
-      message: 'User not found',
+      message: 'Không tìm thấy người dùng',
     };
   }
 
@@ -87,7 +87,7 @@ export async function getUserByUsername(username) {
   if (user.status !== 'active') {
     throw {
       statusCode: 404,
-      message: 'User not found',
+      message: 'Không tìm thấy người dùng',
     };
   }
 
@@ -186,7 +186,7 @@ export async function updateUserProfile(userId, updates) {
     if (!hasUpdates) {
       throw {
         statusCode: 400,
-        message: 'No valid fields to update',
+        message: 'Không có trường hợp lệ nào để cập nhật',
       };
     }
 
@@ -204,7 +204,7 @@ export async function updateUserProfile(userId, updates) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'User not found',
+        message: 'Không tìm thấy người dùng',
       };
     }
     if (error.statusCode) {
@@ -213,7 +213,7 @@ export async function updateUserProfile(userId, updates) {
     console.error('Error updating user profile:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to update profile',
+      message: 'Cập nhật hồ sơ thất bại',
     };
   }
 }
@@ -248,13 +248,13 @@ export async function updateProfilePhoto(userId, photoPath) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'User not found',
+        message: 'Không tìm thấy người dùng',
       };
     }
     console.error('Error updating profile photo:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to update profile photo',
+      message: 'Cập nhật ảnh đại diện thất bại',
     };
   }
 }
@@ -299,7 +299,7 @@ export async function getUserStats(userId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'User not found',
+        message: 'Không tìm thấy người dùng',
       };
     }
     throw error;
@@ -338,7 +338,7 @@ export async function deleteUserAccount(userId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'User not found',
+        message: 'Không tìm thấy người dùng',
       };
     }
     throw error;

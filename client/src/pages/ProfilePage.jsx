@@ -51,7 +51,7 @@ const ProfilePage = () => {
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-      toast.error('Failed to load profile');
+      toast.error('Không tải được hồ sơ');
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ const ProfilePage = () => {
       }
     } catch (error) {
       console.error('Error loading tab data:', error);
-      toast.error('Failed to load data');
+      toast.error('Không tải được dữ liệu');
       // Set empty arrays on error
       if (activeTab === 'followers') setFollowers([]);
       if (activeTab === 'following') setFollowing([]);
@@ -103,10 +103,10 @@ const ProfilePage = () => {
     try {
       if (wasFollowing) {
         await connectionAPI.unfollow(profile.id);
-        toast.success(`Unfollowed ${profile.username}`);
+        toast.success(`Đã bỏ theo dõi ${profile.username}`);
       } else {
         await connectionAPI.follow(profile.id);
-        toast.success(`Following ${profile.username}`);
+        toast.success(`Đã theo dõi ${profile.username}`);
       }
 
       // Reload profile để sync đúng count từ backend
@@ -118,7 +118,7 @@ const ProfilePage = () => {
       if (status === 409) {
         setIsFollowing(true);
         await loadProfile(); // Reload để lấy count chính xác
-        toast('Already following', { icon: 'ℹ️' });
+        toast('Bạn đã theo dõi người này rồi', { icon: 'ℹ️' });
       } else if (status === 404) {
         setIsFollowing(false);
         await loadProfile(); // Reload để lấy count chính xác
@@ -132,7 +132,7 @@ const ProfilePage = () => {
             followerCount: (prev.stats?.followerCount || 0) + (wasFollowing ? 1 : -1),
           },
         }));
-        toast.error('Failed to update follow status');
+        toast.error('Không cập nhật được trạng thái theo dõi');
       }
     }
   };
@@ -144,10 +144,10 @@ const ProfilePage = () => {
 
       if (isCurrentlyFollowing) {
         await connectionAPI.unfollow(userId);
-        toast.success('Unfollowed');
+        toast.success('Đã bỏ theo dõi');
       } else {
         await connectionAPI.follow(userId);
-        toast.success('Following');
+        toast.success('Đã theo dõi');
       }
 
       // Optimistic update trong list hiện tại
@@ -167,7 +167,7 @@ const ProfilePage = () => {
         // Đã follow hoặc chưa follow — reload để sync
         loadTabData();
       } else {
-        toast.error('Failed to update follow status');
+        toast.error('Không cập nhật được trạng thái theo dõi');
       }
     }
   };
@@ -207,7 +207,7 @@ const ProfilePage = () => {
     return (
       <div className="container-custom py-8">
         <div className="card p-8 text-center">
-          <p className="text-gray-600">User not found</p>
+          <p className="text-gray-600">Không tìm thấy người dùng</p>
         </div>
       </div>
     );
@@ -257,7 +257,7 @@ const ProfilePage = () => {
                     className="btn btn-secondary flex items-center space-x-2"
                   >
                     <Settings className="w-4 h-4" />
-                    <span>Edit Profile</span>
+                    <span>Chỉnh sửa hồ sơ</span>
                   </Link>
                 )}
                 {!isOwnProfile && (
@@ -265,7 +265,7 @@ const ProfilePage = () => {
                     onClick={handleFollowToggle}
                     className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`}
                   >
-                    {isFollowing ? 'Unfollow' : 'Follow'}
+                    {isFollowing ? 'Bỏ theo dõi' : 'Theo dõi'}
                   </button>
                 )}
               </div>
@@ -286,7 +286,7 @@ const ProfilePage = () => {
                 )}
                 <div className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />
-                  <span>Joined {new Date(profile.createdAt).toLocaleDateString()}</span>
+                  <span>Tham gia ngày {new Date(profile.createdAt).toLocaleDateString('vi-VN')}</span>
                 </div>
               </div>
             </div>
@@ -303,7 +303,7 @@ const ProfilePage = () => {
               <div className="text-2xl font-bold text-gray-900">
                 {profile.stats?.postCount || 0}
               </div>
-              <div className="text-sm text-gray-600">Posts</div>
+              <div className="text-sm text-gray-600">Bài viết</div>
             </button>
             <button
               onClick={() => setActiveTab('followers')}
@@ -314,7 +314,7 @@ const ProfilePage = () => {
               <div className="text-2xl font-bold text-gray-900">
                 {profile.stats?.followerCount || 0}
               </div>
-              <div className="text-sm text-gray-600">Followers</div>
+              <div className="text-sm text-gray-600">Người theo dõi</div>
             </button>
             <button
               onClick={() => setActiveTab('following')}
@@ -325,14 +325,14 @@ const ProfilePage = () => {
               <div className="text-2xl font-bold text-gray-900">
                 {profile.stats?.followingCount || 0}
               </div>
-              <div className="text-sm text-gray-600">Following</div>
+              <div className="text-sm text-gray-600">Đang theo dõi</div>
             </button>
           </div>
 
           {/* Interests */}
           {profile.interests && profile.interests.length > 0 && (
             <div className="mt-6 pt-6 border-t">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Interests</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Sở thích</h3>
               <div className="flex flex-wrap gap-2">
                 {profile.interests.map((interest, index) => (
                   <span
@@ -360,7 +360,7 @@ const ProfilePage = () => {
             >
               <div className="flex items-center justify-center space-x-2">
                 <Grid className="w-5 h-5" />
-                <span>Posts</span>
+                <span>Bài viết</span>
               </div>
             </button>
             <button
@@ -373,7 +373,7 @@ const ProfilePage = () => {
             >
               <div className="flex items-center justify-center space-x-2">
                 <UserCheck className="w-5 h-5" />
-                <span>Followers</span>
+                <span>Người theo dõi</span>
               </div>
             </button>
             <button
@@ -386,7 +386,7 @@ const ProfilePage = () => {
             >
               <div className="flex items-center justify-center space-x-2">
                 <UserPlus className="w-5 h-5" />
-                <span>Following</span>
+                <span>Đang theo dõi</span>
               </div>
             </button>
           </div>
@@ -407,8 +407,8 @@ const ProfilePage = () => {
                     <Grid className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-600">
                       {isOwnProfile
-                        ? 'You haven\'t posted anything yet'
-                        : `${profile.username} hasn't posted anything yet`}
+                        ? 'Bạn chưa đăng bài viết nào'
+                        : `${profile.username} chưa đăng bài viết nào`}
                     </p>
                   </div>
                 ) : (
@@ -433,8 +433,8 @@ const ProfilePage = () => {
                     <UserCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-600">
                       {isOwnProfile
-                        ? 'You don\'t have any followers yet'
-                        : `${profile.username} doesn't have any followers yet`}
+                        ? 'Bạn chưa có người theo dõi nào'
+                        : `${profile.username} chưa có người theo dõi nào`}
                     </p>
                   </div>
                 ) : (
@@ -461,8 +461,8 @@ const ProfilePage = () => {
                     <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-600">
                       {isOwnProfile
-                        ? 'You\'re not following anyone yet'
-                        : `${profile.username} isn't following anyone yet`}
+                        ? 'Bạn chưa theo dõi ai'
+                        : `${profile.username} chưa theo dõi ai`}
                     </p>
                   </div>
                 ) : (

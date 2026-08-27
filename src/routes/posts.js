@@ -109,7 +109,7 @@ router.post('/', authenticate, uploadPostMedia.array('media', 5), asyncHandler(a
   res.status(201).json({
     success: true,
     data: { post },
-    message: 'Post created successfully',
+    message: 'Đăng bài thành công',
   });
 }));
 
@@ -276,7 +276,7 @@ router.patch('/:id', authenticate, validate(postSchemas.update), asyncHandler(as
   res.status(200).json({
     success: true,
     data: { post },
-    message: 'Post updated successfully',
+    message: 'Cập nhật bài viết thành công',
   });
 }));
 
@@ -295,7 +295,7 @@ router.delete('/:id', authenticate, asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Post deleted successfully',
+    message: 'Xóa bài viết thành công',
   });
 }));
 
@@ -315,7 +315,7 @@ router.post('/:id/like', authenticate, asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: { post },
-    message: 'Post liked successfully',
+    message: 'Đã thích bài viết',
   });
 }));
 
@@ -335,7 +335,7 @@ router.delete('/:id/like', authenticate, asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: { post },
-    message: 'Post unliked successfully',
+    message: 'Đã bỏ thích bài viết',
   });
 }));
 
@@ -363,7 +363,7 @@ router.post('/:id/comments', authenticate, validate(postSchemas.addComment), asy
   res.status(201).json({
     success: true,
     data: { post },
-    message: 'Comment added successfully',
+    message: 'Đã thêm bình luận',
   });
 }));
 
@@ -406,7 +406,7 @@ router.delete('/:id/comments/:commentId', authenticate, asyncHandler(async (req,
   res.status(200).json({
     success: true,
     data: { post },
-    message: 'Comment deleted successfully',
+    message: 'Đã xóa bình luận',
   });
 }));
 

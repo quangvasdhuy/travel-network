@@ -79,15 +79,15 @@ export class User {
     const errors = [];
 
     if (!data.email || !this.isValidEmail(data.email)) {
-      errors.push('Valid email is required');
+      errors.push('Email phải hợp lệ');
     }
 
     if (!data.username || data.username.length < 3 || data.username.length > 30) {
-      errors.push('Username must be between 3 and 30 characters');
+      errors.push('Tên đăng nhập phải từ 3 đến 30 ký tự');
     }
 
     if (!data.passwordHash) {
-      errors.push('Password hash is required');
+      errors.push('Thiếu mã băm mật khẩu');
     }
 
     return {

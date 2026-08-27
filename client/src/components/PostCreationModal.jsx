@@ -104,14 +104,14 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
     
     // Validate file count (max 5)
     if (mediaFiles.length + files.length > 5) {
-      toast.error('Maximum 5 images allowed');
+      toast.error('Chỉ được chọn tối đa 5 ảnh');
       return;
     }
 
     // Validate file size (max 50MB total)
     const totalSize = [...mediaFiles, ...files].reduce((sum, file) => sum + file.size, 0);
     if (totalSize > 50 * 1024 * 1024) {
-      toast.error('Total file size must be less than 50MB');
+      toast.error('Tổng dung lượng phải nhỏ hơn 50MB');
       return;
     }
 
@@ -119,7 +119,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     const invalidFiles = files.filter(file => !validTypes.includes(file.type));
     if (invalidFiles.length > 0) {
-      toast.error('Only JPG, PNG, GIF, and WebP images are allowed');
+      toast.error('Chỉ chấp nhận ảnh JPG, PNG, GIF và WebP');
       return;
     }
 
@@ -148,11 +148,11 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
     const newErrors = {};
 
     if (!formData.content.trim()) {
-      newErrors.content = 'Post content is required';
+      newErrors.content = 'Vui lòng nhập nội dung bài viết';
     }
 
     if (formData.content.length > 5000) {
-      newErrors.content = 'Content must be less than 5000 characters';
+      newErrors.content = 'Nội dung không được vượt quá 5000 ký tự';
     }
 
     setErrors(newErrors);
@@ -181,7 +181,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
         }
 
         const response = await postAPI.update(post.id, updateData);
-        toast.success('Post updated successfully!');
+        toast.success('Cập nhật bài viết thành công!');
         
         if (onPostCreated) {
           onPostCreated(response.data.data.post);
@@ -202,7 +202,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
         });
 
         const response = await postAPI.create(submitData);
-        toast.success('Post created successfully!');
+        toast.success('Đăng bài thành công!');
         
         if (onPostCreated) {
           onPostCreated(response.data.data.post);
@@ -223,7 +223,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
       onClose();
     } catch (error) {
       console.error(`Error ${isEditing ? 'updating' : 'creating'} post:`, error);
-      toast.error(error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} post`);
+      toast.error(error.response?.data?.message || `${isEditing ? 'Cập nhật' : 'Đăng'} bài viết thất bại`);
     } finally {
       setLoading(false);
     }
@@ -233,7 +233,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
     if (loading) return;
     
     if (formData.content || mediaFiles.length > 0) {
-      if (!window.confirm('Discard this post?')) {
+      if (!window.confirm('Hủy bỏ bài viết này?')) {
         return;
       }
     }
@@ -259,13 +259,13 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">
-            {isEditing ? 'Edit Post' : 'Create Post'}
+            {isEditing ? 'Sửa bài viết' : 'Tạo bài viết'}
           </h2>
           <button
             onClick={handleClose}
             disabled={loading}
             className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-            aria-label="Close"
+            aria-label="Đóng"
           >
             <X className="w-6 h-6" />
           </button>
@@ -275,7 +275,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
           {/* Content */}
           <div>
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-              What's on your mind? *
+              Bạn đang nghĩ gì? *
             </label>
             <textarea
               id="content"
@@ -284,7 +284,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
               onChange={handleChange}
               rows={6}
               className={`input resize-none ${errors.content ? 'border-red-500' : ''}`}
-              placeholder="Share your travel experience, tips, or thoughts..."
+              placeholder="Chia sẻ trải nghiệm, mẹo du lịch hoặc cảm nghĩ của bạn..."
               disabled={loading}
             />
             <div className="flex items-center justify-between mt-1">
@@ -292,7 +292,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
                 <p className="text-sm text-red-600">{errors.content}</p>
               ) : (
                 <span className="text-sm text-gray-500">
-                  {formData.content.length}/5000 characters
+                  {formData.content.length}/5000 ký tự
                 </span>
               )}
             </div>
@@ -302,7 +302,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
           {!isEditing && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Photos (up to 5, max 50MB total)
+                Ảnh (tối đa 5 ảnh, tổng dung lượng 50MB)
               </label>
             
             {mediaPreviews.length > 0 && (
@@ -311,7 +311,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
                   <div key={index} className="relative group">
                     <img
                       src={preview}
-                      alt={`Preview ${index + 1}`}
+                      alt={`Ảnh ${index + 1}`}
                       className="w-full h-40 object-cover rounded-lg"
                     />
                     <button
@@ -319,7 +319,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
                       onClick={() => removeMedia(index)}
                       disabled={loading}
                       className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                      aria-label="Remove image"
+                      aria-label="Xóa ảnh"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -333,10 +333,10 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <Upload className="w-10 h-10 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium text-primary-600">Click to upload</span> or drag and drop
+                    <span className="font-medium text-primary-600">Nhấn để tải lên</span> hoặc kéo thả vào đây
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    PNG, JPG, GIF, WebP (max 50MB total)
+                    PNG, JPG, GIF, WebP (tổng tối đa 50MB)
                   </p>
                 </div>
                 <input
@@ -355,7 +355,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
           {/* Destination Search */}
           <div>
             <label htmlFor="destination-search" className="block text-sm font-medium text-gray-700 mb-2">
-              Add Location
+              Thêm địa điểm
             </label>
             
             {selectedDestination ? (
@@ -372,7 +372,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
                   onClick={removeDestination}
                   disabled={loading}
                   className="text-red-600 hover:text-red-700 disabled:opacity-50"
-                  aria-label="Remove location"
+                  aria-label="Xóa địa điểm"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -387,7 +387,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
                     value={destinationQuery}
                     onChange={handleDestinationSearch}
                     className="input pl-10"
-                    placeholder="Search for a destination..."
+                    placeholder="Tìm điểm đến..."
                     disabled={loading}
                   />
                 </div>
@@ -414,7 +414,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
           {/* Visibility */}
           <div>
             <label htmlFor="visibility" className="block text-sm font-medium text-gray-700 mb-2">
-              Who can see this?
+              Ai có thể xem bài viết này?
             </label>
             <select
               id="visibility"
@@ -424,9 +424,9 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
               className="input"
               disabled={loading}
             >
-              <option value="public">Public</option>
-              <option value="connections">Connections Only</option>
-              <option value="private">Private</option>
+              <option value="public">Công khai</option>
+              <option value="connections">Chỉ người kết nối</option>
+              <option value="private">Riêng tư</option>
             </select>
           </div>
 
@@ -440,10 +440,10 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
               {loading ? (
                 <>
                   <LoadingSpinner size="small" />
-                  <span>{isEditing ? 'Updating...' : 'Posting...'}</span>
+                  <span>{isEditing ? 'Đang cập nhật...' : 'Đang đăng...'}</span>
                 </>
               ) : (
-                <span>{isEditing ? 'Update' : 'Post'}</span>
+                <span>{isEditing ? 'Cập nhật' : 'Đăng bài'}</span>
               )}
             </button>
             <button
@@ -452,7 +452,7 @@ const PostCreationModal = ({ isOpen, onClose, onPostCreated, post, isEditing = f
               disabled={loading}
               className="btn btn-secondary"
             >
-              Cancel
+              Hủy
             </button>
           </div>
         </form>

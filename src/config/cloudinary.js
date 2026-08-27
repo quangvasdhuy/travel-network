@@ -55,7 +55,7 @@ const imageFileFilter = (req, file, cb) => {
   if (mimetype) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files are allowed (jpeg, jpg, png, gif, webp)'));
+    cb(new Error('Chỉ chấp nhận tệp ảnh (jpeg, jpg, png, gif, webp)'));
   }
 };
 
@@ -66,7 +66,7 @@ const mediaFileFilter = (req, file, cb) => {
   if (mimetype) {
     cb(null, true);
   } else {
-    cb(new Error('Only images and videos are allowed'));
+    cb(new Error('Chỉ chấp nhận tệp ảnh và video'));
   }
 };
 

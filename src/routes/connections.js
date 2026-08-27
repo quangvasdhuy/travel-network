@@ -38,7 +38,7 @@ router.post('/follow/:userId', authenticate, asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     data: { connection },
-    message: `You are now following ${following.username}`,
+    message: `Bạn đã theo dõi ${following.username}`,
   });
 }));
 
@@ -57,7 +57,7 @@ router.delete('/follow/:userId', authenticate, asyncHandler(async (req, res) => 
 
   res.status(200).json({
     success: true,
-    message: 'Successfully unfollowed user',
+    message: 'Đã bỏ theo dõi người dùng',
   });
 }));
 

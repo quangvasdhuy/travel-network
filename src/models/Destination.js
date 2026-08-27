@@ -85,19 +85,19 @@ export class Destination {
     const errors = [];
 
     if (!data.name || data.name.length < 2) {
-      errors.push('Destination name is required (minimum 2 characters)');
+      errors.push('Tên điểm đến là bắt buộc (tối thiểu 2 ký tự)');
     }
 
     if (!data.country) {
-      errors.push('Country is required');
+      errors.push('Quốc gia là bắt buộc');
     }
 
     if (!data.countryCode || data.countryCode.length !== 2) {
-      errors.push('Valid country code is required (ISO 3166-1 alpha-2)');
+      errors.push('Mã quốc gia phải hợp lệ (ISO 3166-1 alpha-2)');
     }
 
     if (!data.coordinates || typeof data.coordinates.lat !== 'number' || typeof data.coordinates.lon !== 'number') {
-      errors.push('Valid coordinates (lat, lon) are required');
+      errors.push('Tọa độ (lat, lon) phải hợp lệ');
     }
 
     return {

@@ -64,23 +64,23 @@ export class Trip {
     const errors = [];
 
     if (!data.userId) {
-      errors.push('User ID is required');
+      errors.push('Thiếu ID người dùng');
     }
 
     if (!data.title || data.title.length < 3 || data.title.length > 100) {
-      errors.push('Title must be between 3 and 100 characters');
+      errors.push('Tên chuyến đi phải từ 3 đến 100 ký tự');
     }
 
     if (!data.startDate) {
-      errors.push('Start date is required');
+      errors.push('Ngày bắt đầu là bắt buộc');
     }
 
     if (!data.endDate) {
-      errors.push('End date is required');
+      errors.push('Ngày kết thúc là bắt buộc');
     }
 
     if (data.startDate && data.endDate && new Date(data.startDate) > new Date(data.endDate)) {
-      errors.push('Start date must be before end date');
+      errors.push('Ngày bắt đầu phải trước ngày kết thúc');
     }
 
     // Destinations can be optional (allow creating trip without destinations)

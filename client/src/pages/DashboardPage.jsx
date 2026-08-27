@@ -284,10 +284,10 @@ const DashboardPage = () => {
           {/* Welcome Header */}
           <div className="card p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Welcome back, {user?.profile?.firstName}!
+              Chào mừng trở lại, {user?.profile?.firstName}!
             </h1>
             <p className="text-gray-600">
-              Here's what's happening in your travel network
+              Cùng xem có gì mới trong mạng lưới du lịch của bạn
             </p>
           </div>
 
@@ -295,13 +295,13 @@ const DashboardPage = () => {
           {/* Feed */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Your Feed</h2>
+              <h2 className="text-xl font-bold text-gray-900">Bảng tin của bạn</h2>
               <button
                 onClick={() => setShowCreatePost(true)}
                 className="btn btn-primary flex items-center space-x-2"
               >
                 <Plus className="w-5 h-5" />
-                <span>Create Post</span>
+                <span>Tạo bài viết</span>
               </button>
             </div>
             
@@ -309,16 +309,16 @@ const DashboardPage = () => {
               <div className="card p-12 text-center">
                 <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No posts available
+                  Chưa có bài viết nào
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Be the first to share your travel story!
+                  Hãy là người đầu tiên chia sẻ câu chuyện du lịch!
                 </p>
                 <button
                   onClick={() => setShowCreatePost(true)}
                   className="btn btn-primary"
                 >
-                  Create Your First Post
+                  Tạo bài viết đầu tiên
                 </button>
               </div>
             ) : (
@@ -358,7 +358,7 @@ const DashboardPage = () => {
                 
                 {!hasMore && feed.length > 0 && (
                   <div className="text-center py-8 text-gray-600">
-                    <p>You've caught up with everything! 🎉</p>
+                    <p>Bạn đã xem hết bài viết rồi! 🎉</p>
                   </div>
                 )}
               </>
@@ -372,7 +372,7 @@ const DashboardPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <TrendingUp className="w-5 h-5 text-primary-600" />
-              <h3 className="font-bold text-gray-900">Your Stats</h3>
+              <h3 className="font-bold text-gray-900">Thống kê của bạn</h3>
             </div>
             
             {userStats ? (
@@ -382,7 +382,7 @@ const DashboardPage = () => {
                   className="text-center p-3 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all"
                 >
                   <div className="text-2xl font-bold text-blue-700">{userStats.trips}</div>
-                  <div className="text-xs text-blue-600 mt-1">Trips</div>
+                  <div className="text-xs text-blue-600 mt-1">Chuyến đi</div>
                 </Link>
                 
                 <Link
@@ -390,7 +390,7 @@ const DashboardPage = () => {
                   className="text-center p-3 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all"
                 >
                   <div className="text-2xl font-bold text-purple-700">{userStats.posts}</div>
-                  <div className="text-xs text-purple-600 mt-1">Posts</div>
+                  <div className="text-xs text-purple-600 mt-1">Bài viết</div>
                 </Link>
                 
                 <Link
@@ -398,7 +398,7 @@ const DashboardPage = () => {
                   className="text-center p-3 rounded-lg bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 transition-all"
                 >
                   <div className="text-2xl font-bold text-green-700">{userStats.followers}</div>
-                  <div className="text-xs text-green-600 mt-1">Followers</div>
+                  <div className="text-xs text-green-600 mt-1">Người theo dõi</div>
                 </Link>
                 
                 <Link
@@ -406,7 +406,7 @@ const DashboardPage = () => {
                   className="text-center p-3 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 transition-all"
                 >
                   <div className="text-2xl font-bold text-orange-700">{userStats.following}</div>
-                  <div className="text-xs text-orange-600 mt-1">Following</div>
+                  <div className="text-xs text-orange-600 mt-1">Đang theo dõi</div>
                 </Link>
               </div>
             ) : (
@@ -424,9 +424,9 @@ const DashboardPage = () => {
           {/* Suggested Connections */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-900">Suggested for you</h3>
+              <h3 className="font-bold text-gray-900">Gợi ý cho bạn</h3>
               <Link to="/search" className="text-sm text-primary-600 hover:text-primary-700">
-                See all
+                Xem tất cả
               </Link>
             </div>
             
@@ -434,7 +434,7 @@ const DashboardPage = () => {
               <LoadingSpinner size="default" />
             ) : suggestions.length === 0 ? (
               <p className="text-sm text-gray-600 text-center py-4">
-                No suggestions available
+                Chưa có gợi ý nào
               </p>
             ) : (
               <div className="space-y-3">

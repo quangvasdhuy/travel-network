@@ -31,7 +31,7 @@ export async function createPost(userId, username, userPhoto, postData) {
   if (!validation.valid) {
     throw {
       statusCode: 400,
-      message: 'Invalid post data',
+      message: 'Dữ liệu bài viết không hợp lệ',
       details: validation.errors,
     };
   }
@@ -59,7 +59,7 @@ export async function createPost(userId, username, userPhoto, postData) {
     console.error('Error creating post:', error);
     throw {
       statusCode: 500,
-      message: 'Failed to create post',
+      message: 'Đăng bài thất bại',
     };
   }
 }
@@ -82,7 +82,7 @@ export async function getPostById(postId, requestingUserId = null) {
     if (post.visibility === 'private' && post.authorId !== requestingUserId) {
       throw {
         statusCode: 403,
-        message: 'You do not have permission to view this post',
+        message: 'Bạn không có quyền xem bài viết này',
       };
     }
 
@@ -100,7 +100,7 @@ export async function getPostById(postId, requestingUserId = null) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Post not found',
+        message: 'Không tìm thấy bài viết',
       };
     }
     throw error;
@@ -169,7 +169,7 @@ export async function updatePost(postId, userId, updates) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Post not found',
+        message: 'Không tìm thấy bài viết',
       };
     }
     throw error;
@@ -179,7 +179,7 @@ export async function updatePost(postId, userId, updates) {
   if (existingPost.authorId !== userId) {
     throw {
       statusCode: 403,
-      message: 'You do not have permission to update this post',
+      message: 'Bạn không có quyền sửa bài viết này',
     };
   }
 
@@ -236,7 +236,7 @@ export async function updatePost(postId, userId, updates) {
   if (mutations.length === 0) {
     throw {
       statusCode: 400,
-      message: 'No valid fields to update',
+      message: 'Không có trường hợp lệ nào để cập nhật',
     };
   }
 
@@ -279,7 +279,7 @@ export async function deletePost(postId, userId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Post not found',
+        message: 'Không tìm thấy bài viết',
       };
     }
     throw error;
@@ -289,7 +289,7 @@ export async function deletePost(postId, userId) {
   if (existingPost.authorId !== userId) {
     throw {
       statusCode: 403,
-      message: 'You do not have permission to delete this post',
+      message: 'Bạn không có quyền xóa bài viết này',
     };
   }
 
@@ -333,7 +333,7 @@ export async function likePost(postId, userId) {
     if (post.interactions.likes.includes(userId)) {
       throw {
         statusCode: 409,
-        message: 'You have already liked this post',
+        message: 'Bạn đã thích bài viết này rồi',
       };
     }
 
@@ -348,7 +348,7 @@ export async function likePost(postId, userId) {
   } catch (error) {
     if (error.statusCode) throw error;
     if (error.name === 'DocumentNotFoundError') {
-      throw { statusCode: 404, message: 'Post not found' };
+      throw { statusCode: 404, message: 'Không tìm thấy bài viết' };
     }
     throw error;
   }
@@ -380,7 +380,7 @@ export async function unlikePost(postId, userId) {
     if (likeIndex === -1) {
       throw {
         statusCode: 409,
-        message: 'You have not liked this post',
+        message: 'Bạn chưa thích bài viết này',
       };
     }
 
@@ -395,7 +395,7 @@ export async function unlikePost(postId, userId) {
   } catch (error) {
     if (error.statusCode) throw error;
     if (error.name === 'DocumentNotFoundError') {
-      throw { statusCode: 404, message: 'Post not found' };
+      throw { statusCode: 404, message: 'Không tìm thấy bài viết' };
     }
     throw error;
   }
@@ -435,7 +435,7 @@ export async function addComment(postId, userId, username, userPhoto, text) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Post not found',
+        message: 'Không tìm thấy bài viết',
       };
     }
     throw error;
@@ -460,7 +460,7 @@ export async function getComments(postId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Post not found',
+        message: 'Không tìm thấy bài viết',
       };
     }
     throw error;
@@ -488,7 +488,7 @@ export async function deleteComment(postId, commentId, userId) {
     if (commentIndex === -1) {
       throw {
         statusCode: 404,
-        message: 'Comment not found',
+        message: 'Không tìm thấy bình luận',
       };
     }
 
@@ -498,7 +498,7 @@ export async function deleteComment(postId, commentId, userId) {
     if (comment.userId !== userId && post.authorId !== userId) {
       throw {
         statusCode: 403,
-        message: 'You do not have permission to delete this comment',
+        message: 'Bạn không có quyền xóa bình luận này',
       };
     }
 
@@ -515,7 +515,7 @@ export async function deleteComment(postId, commentId, userId) {
     if (error.name === 'DocumentNotFoundError') {
       throw {
         statusCode: 404,
-        message: 'Post not found',
+        message: 'Không tìm thấy bài viết',
       };
     }
     throw error;

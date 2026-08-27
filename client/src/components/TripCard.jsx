@@ -19,7 +19,15 @@ const TripCard = ({ trip, onDelete, isOwner = false }) => {
   };
 
   const getStatusLabel = (status) => {
-    return status.charAt(0).toUpperCase() + status.slice(1);
+    const labels = {
+      planning: 'Đang lên kế hoạch',
+      upcoming: 'Sắp diễn ra',
+      ongoing: 'Đang diễn ra',
+      completed: 'Đã hoàn thành',
+      active: 'Đang diễn ra',
+      cancelled: 'Đã hủy',
+    };
+    return labels[status] || status;
   };
 
   return (
@@ -42,14 +50,14 @@ const TripCard = ({ trip, onDelete, isOwner = false }) => {
             <Link
               to={`/trips/${trip.id}/edit`}
               className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Edit trip"
+              aria-label="Sửa chuyến đi"
             >
               <Edit className="w-5 h-5" />
             </Link>
             <button
               onClick={() => onDelete && onDelete(trip.id)}
               className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              aria-label="Delete trip"
+              aria-label="Xóa chuyến đi"
             >
               <Trash2 className="w-5 h-5" />
             </button>
@@ -65,7 +73,7 @@ const TripCard = ({ trip, onDelete, isOwner = false }) => {
         <div className="flex items-center text-sm text-gray-600">
           <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
           <span>
-            {format(new Date(trip.startDate), 'MMM d, yyyy')} - {format(new Date(trip.endDate), 'MMM d, yyyy')}
+            {format(new Date(trip.startDate), 'dd/MM/yyyy')} - {format(new Date(trip.endDate), 'dd/MM/yyyy')}
           </span>
         </div>
 
@@ -73,7 +81,7 @@ const TripCard = ({ trip, onDelete, isOwner = false }) => {
           <div className="flex items-start text-sm text-gray-600">
             <MapPin className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
             <span className="line-clamp-1">
-              {trip.destinations.length} {trip.destinations.length === 1 ? 'destination' : 'destinations'}
+              {trip.destinations.length} điểm đến
             </span>
           </div>
         )}
@@ -82,7 +90,7 @@ const TripCard = ({ trip, onDelete, isOwner = false }) => {
           <div className="flex items-center text-sm text-gray-600">
             <Users className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>
-              {trip.travelers.length} {trip.travelers.length === 1 ? 'traveler' : 'travelers'}
+              {trip.travelers.length} người tham gia
             </span>
           </div>
         )}
@@ -91,9 +99,9 @@ const TripCard = ({ trip, onDelete, isOwner = false }) => {
       {trip.budget && (
         <div className="pt-4 border-t">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Budget:</span>
+            <span className="text-gray-600">Ngân sách:</span>
             <span className="font-semibold text-gray-900">
-              {trip.budget.currency} {trip.budget.estimated?.toLocaleString() || 'Not set'}
+              {trip.budget.currency} {trip.budget.estimated?.toLocaleString() || 'Chưa đặt'}
             </span>
           </div>
         </div>

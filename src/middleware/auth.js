@@ -20,7 +20,7 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         error: {
-          message: 'No token provided',
+          message: 'Chưa cung cấp token xác thực',
           statusCode: 401,
         },
       });
@@ -37,7 +37,7 @@ export const authenticate = async (req, res, next) => {
         return res.status(401).json({
           success: false,
           error: {
-            message: 'Token expired',
+            message: 'Phiên đăng nhập đã hết hạn',
             statusCode: 401,
             code: 'TOKEN_EXPIRED',
           },
@@ -59,7 +59,7 @@ export const authenticate = async (req, res, next) => {
         return res.status(403).json({
           success: false,
           error: {
-            message: 'User account is not active',
+            message: 'Tài khoản chưa được kích hoạt',
             statusCode: 403,
           },
         });
@@ -80,7 +80,7 @@ export const authenticate = async (req, res, next) => {
         return res.status(401).json({
           success: false,
           error: {
-            message: 'User not found',
+            message: 'Không tìm thấy người dùng',
             statusCode: 401,
           },
         });
@@ -92,7 +92,7 @@ export const authenticate = async (req, res, next) => {
     return res.status(401).json({
       success: false,
       error: {
-        message: 'Invalid token',
+        message: 'Token không hợp lệ',
         statusCode: 401,
       },
     });
@@ -138,7 +138,7 @@ export const requireOwnership = (getUserIdFromParams) => {
       return res.status(403).json({
         success: false,
         error: {
-          message: 'You do not have permission to access this resource',
+          message: 'Bạn không có quyền truy cập tài nguyên này',
           statusCode: 403,
         },
       });

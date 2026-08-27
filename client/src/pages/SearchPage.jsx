@@ -27,7 +27,7 @@ const SearchPage = () => {
   return (
     <div className="container-custom py-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Search</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Tìm kiếm</h1>
 
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="mb-8">
@@ -38,7 +38,7 @@ const SearchPage = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="input pl-12 text-lg"
-              placeholder="Search for users, destinations, or posts..."
+              placeholder="Tìm người dùng, điểm đến hoặc bài viết..."
             />
           </div>
         </form>
@@ -57,7 +57,7 @@ const SearchPage = () => {
             {results.users.length > 0 && (
               <section>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Users ({results.users.length})
+                  Người dùng ({results.users.length})
                 </h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   {results.users.map((user) => (
@@ -75,7 +75,7 @@ const SearchPage = () => {
             {results.destinations.length > 0 && (
               <section>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Destinations ({results.destinations.length})
+                  Điểm đến ({results.destinations.length})
                 </h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   {results.destinations.map((dest) => (
@@ -104,7 +104,7 @@ const SearchPage = () => {
             {results.posts.length > 0 && (
               <section>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Posts ({results.posts.length})
+                  Bài viết ({results.posts.length})
                 </h2>
                 <div className="space-y-4">
                   {results.posts.map((post) => (
@@ -127,7 +127,7 @@ const SearchPage = () => {
             {/* No Results */}
             {results.total === 0 && (
               <div className="card p-12 text-center">
-                <p className="text-gray-600">No results found for "{results.query}"</p>
+                <p className="text-gray-600">Không tìm thấy kết quả cho "{results.query}"</p>
               </div>
             )}
           </div>
@@ -138,7 +138,7 @@ const SearchPage = () => {
           <div className="card p-12 text-center">
             <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600">
-              Search for users, destinations, or posts
+              Tìm người dùng, điểm đến hoặc bài viết
             </p>
           </div>
         )}

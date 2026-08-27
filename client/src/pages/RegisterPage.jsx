@@ -45,40 +45,40 @@ const RegisterPage = () => {
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Vui lòng nhập email';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Email không hợp lệ';
     }
 
     // Username validation
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = 'Vui lòng nhập tên đăng nhập';
     } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+      newErrors.username = 'Tên đăng nhập phải có ít nhất 3 ký tự';
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      newErrors.username = 'Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới';
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Vui lòng nhập mật khẩu';
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
 
     // Confirm password validation
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = 'Mật khẩu nhập lại không khớp';
     }
 
     // First name validation
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+      newErrors.firstName = 'Vui lòng nhập tên';
     }
 
     // Last name validation
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+      newErrors.lastName = 'Vui lòng nhập họ';
     }
 
     setErrors(newErrors);
@@ -121,11 +121,11 @@ const RegisterPage = () => {
           setErrors(prevErrors => ({ ...prevErrors, ...backendErrors }));
         } else {
           // Otherwise show general error
-          setApiError(result.error || 'Registration failed. Please try again.');
+          setApiError(result.error || 'Đăng ký thất bại. Vui lòng thử lại.');
         }
       } else {
         // Display general API error
-        setApiError(result.error || 'Registration failed. Please try again.');
+        setApiError(result.error || 'Đăng ký thất bại. Vui lòng thử lại.');
       }
     }
 
@@ -141,8 +141,8 @@ const RegisterPage = () => {
             <Compass className="w-12 h-12 text-primary-600" />
             <span className="text-3xl font-bold text-gray-900">TravelNet</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Create your account</h1>
-          <p className="text-gray-600">Join the travel community today</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Tạo tài khoản mới</h1>
+          <p className="text-gray-600">Tham gia cộng đồng du lịch ngay hôm nay</p>
         </div>
 
         {/* Register Form */}
@@ -155,7 +155,7 @@ const RegisterPage = () => {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-red-800">Registration Error</h3>
+                  <h3 className="text-sm font-medium text-red-800">Lỗi đăng ký</h3>
                   <p className="mt-1 text-sm text-red-700">{apiError}</p>
                 </div>
               </div>
@@ -189,7 +189,7 @@ const RegisterPage = () => {
             {/* Username */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username
+                Tên đăng nhập
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -200,7 +200,7 @@ const RegisterPage = () => {
                   value={formData.username}
                   onChange={handleChange}
                   className={`input pl-10 ${errors.username ? 'border-red-500' : ''}`}
-                  placeholder="johndoe"
+                  placeholder="tendangnhap"
                   disabled={loading}
                 />
               </div>
@@ -213,7 +213,7 @@ const RegisterPage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
+                  Tên
                 </label>
                 <input
                   type="text"
@@ -222,7 +222,7 @@ const RegisterPage = () => {
                   value={formData.firstName}
                   onChange={handleChange}
                   className={`input ${errors.firstName ? 'border-red-500' : ''}`}
-                  placeholder="John"
+                  placeholder="Huy"
                   disabled={loading}
                 />
                 {errors.firstName && (
@@ -232,7 +232,7 @@ const RegisterPage = () => {
 
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
+                  Họ
                 </label>
                 <input
                   type="text"
@@ -241,7 +241,7 @@ const RegisterPage = () => {
                   value={formData.lastName}
                   onChange={handleChange}
                   className={`input ${errors.lastName ? 'border-red-500' : ''}`}
-                  placeholder="Doe"
+                  placeholder="Nguyễn"
                   disabled={loading}
                 />
                 {errors.lastName && (
@@ -253,7 +253,7 @@ const RegisterPage = () => {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Mật khẩu
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -284,7 +284,7 @@ const RegisterPage = () => {
             {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
+                Nhập lại mật khẩu
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -321,10 +321,10 @@ const RegisterPage = () => {
               {loading ? (
                 <>
                   <LoadingSpinner size="small" />
-                  <span>Creating account...</span>
+                  <span>Đang tạo tài khoản...</span>
                 </>
               ) : (
-                <span>Create Account</span>
+                <span>Tạo tài khoản</span>
               )}
             </button>
           </form>
@@ -332,9 +332,9 @@ const RegisterPage = () => {
           {/* Divider */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{' '}
+              Đã có tài khoản?{' '}
               <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
-                Sign in
+                Đăng nhập
               </Link>
             </p>
           </div>
@@ -343,7 +343,7 @@ const RegisterPage = () => {
         {/* Back to Home */}
         <div className="mt-6 text-center">
           <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to home
+            ← Về trang chủ
           </Link>
         </div>
       </div>

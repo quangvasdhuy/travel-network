@@ -44,7 +44,7 @@ router.patch('/me', authenticate, asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: { user: updatedProfile },
-    message: 'Profile updated successfully',
+    message: 'Cập nhật hồ sơ thành công',
   });
 }));
 
@@ -60,7 +60,7 @@ router.post('/me/photo', authenticate, uploadProfilePhoto.single('photo'), async
   if (!req.file) {
     throw {
       statusCode: 400,
-      message: 'No photo file uploaded',
+      message: 'Chưa chọn tệp ảnh',
     };
   }
 
@@ -75,7 +75,7 @@ router.post('/me/photo', authenticate, uploadProfilePhoto.single('photo'), async
       user: updatedProfile,
       photoUrl,
     },
-    message: 'Profile photo updated successfully',
+    message: 'Cập nhật ảnh đại diện thành công',
   });
 }));
 
@@ -91,7 +91,7 @@ router.delete('/me', authenticate, asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Account deleted successfully',
+    message: 'Xóa tài khoản thành công',
   });
 }));
 
@@ -128,7 +128,7 @@ router.get('/search', asyncHandler(async (req, res) => {
   if (!query || query.trim().length < 2) {
     throw {
       statusCode: 400,
-      message: 'Search query must be at least 2 characters',
+      message: 'Từ khóa tìm kiếm phải có ít nhất 2 ký tự',
     };
   }
 

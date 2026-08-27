@@ -39,13 +39,13 @@ const LoginPage = () => {
     const newErrors = {};
 
     if (!formData.emailOrUsername.trim()) {
-      newErrors.emailOrUsername = 'Email or username is required';
+      newErrors.emailOrUsername = 'Vui lòng nhập email hoặc tên đăng nhập';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Vui lòng nhập mật khẩu';
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
 
     setErrors(newErrors);
@@ -71,7 +71,7 @@ const LoginPage = () => {
       }, 100);
     } else {
       // Display API error
-      setApiError(result.error || 'Login failed. Please try again.');
+      setApiError(result.error || 'Đăng nhập thất bại. Vui lòng thử lại.');
     }
 
     setLoading(false);
@@ -86,8 +86,8 @@ const LoginPage = () => {
             <Compass className="w-12 h-12 text-primary-600" />
             <span className="text-3xl font-bold text-gray-900">TravelNet</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back!</h1>
-          <p className="text-gray-600">Sign in to continue your journey</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Chào mừng trở lại!</h1>
+          <p className="text-gray-600">Đăng nhập để tiếp tục hành trình của bạn</p>
         </div>
 
         {/* Login Form */}
@@ -100,7 +100,7 @@ const LoginPage = () => {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-red-800">Login Error</h3>
+                  <h3 className="text-sm font-medium text-red-800">Lỗi đăng nhập</h3>
                   <p className="mt-1 text-sm text-red-700">{apiError}</p>
                 </div>
               </div>
@@ -111,7 +111,7 @@ const LoginPage = () => {
             {/* Email/Username */}
             <div>
               <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-700 mb-2">
-                Email or Username
+                Email hoặc tên đăng nhập
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -122,7 +122,7 @@ const LoginPage = () => {
                   value={formData.emailOrUsername}
                   onChange={handleChange}
                   className={`input pl-10 ${errors.emailOrUsername ? 'border-red-500' : ''}`}
-                  placeholder="john@example.com or johndoe"
+                  placeholder="email@example.com hoặc tendangnhap"
                   disabled={loading}
                 />
               </div>
@@ -134,7 +134,7 @@ const LoginPage = () => {
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Mật khẩu
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -175,10 +175,10 @@ const LoginPage = () => {
               {loading ? (
                 <>
                   <LoadingSpinner size="small" />
-                  <span>Signing in...</span>
+                  <span>Đang đăng nhập...</span>
                 </>
               ) : (
-                <span>Sign In</span>
+                <span>Đăng nhập</span>
               )}
             </button>
           </form>
@@ -186,9 +186,9 @@ const LoginPage = () => {
           {/* Divider */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Chưa có tài khoản?{' '}
               <Link to="/register" className="font-medium text-primary-600 hover:text-primary-700">
-                Sign up
+                Đăng ký
               </Link>
             </p>
           </div>
@@ -197,7 +197,7 @@ const LoginPage = () => {
         {/* Back to Home */}
         <div className="mt-6 text-center">
           <Link to="/" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to home
+            ← Về trang chủ
           </Link>
         </div>
       </div>

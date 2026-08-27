@@ -92,19 +92,19 @@ const CreateTripPage = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Trip name is required';
+      newErrors.name = 'Vui lòng nhập tên chuyến đi';
     }
 
     if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+      newErrors.startDate = 'Vui lòng chọn ngày bắt đầu';
     }
 
     if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
+      newErrors.endDate = 'Vui lòng chọn ngày kết thúc';
     }
 
     if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
-      newErrors.endDate = 'End date must be after start date';
+      newErrors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
     }
 
     setErrors(newErrors);
@@ -130,11 +130,11 @@ const CreateTripPage = () => {
       };
 
       const response = await tripAPI.create(tripData);
-      toast.success('Trip created successfully!');
+      toast.success('Tạo chuyến đi thành công!');
       navigate(`/trips/${response.data.data.trip.id}`);
     } catch (error) {
       console.error('Error creating trip:', error);
-      toast.error(error.response?.data?.message || 'Failed to create trip');
+      toast.error(error.response?.data?.message || 'Tạo chuyến đi thất bại');
     } finally {
       setLoading(false);
     }
@@ -144,8 +144,8 @@ const CreateTripPage = () => {
     <div className="container-custom py-8">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Trip</h1>
-          <p className="text-gray-600">Plan your next adventure</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tạo chuyến đi mới</h1>
+          <p className="text-gray-600">Lên kế hoạch cho hành trình tiếp theo của bạn</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -153,13 +153,13 @@ const CreateTripPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <FileText className="w-5 h-5 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Basic Information</h2>
+              <h2 className="text-xl font-bold text-gray-900">Thông tin cơ bản</h2>
             </div>
 
             <div className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Trip Name *
+                  Tên chuyến đi *
                 </label>
                 <input
                   type="text"
@@ -168,7 +168,7 @@ const CreateTripPage = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className={`input ${errors.name ? 'border-red-500' : ''}`}
-                  placeholder="e.g., Summer Europe Adventure"
+                  placeholder="VD: Hành trình châu Âu mùa hè"
                 />
                 {errors.name && (
                   <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -177,7 +177,7 @@ const CreateTripPage = () => {
 
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  Mô tả
                 </label>
                 <textarea
                   id="description"
@@ -186,14 +186,14 @@ const CreateTripPage = () => {
                   onChange={handleChange}
                   rows={4}
                   className="input"
-                  placeholder="Describe your trip..."
+                  placeholder="Mô tả về chuyến đi của bạn..."
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
+                    Trạng thái
                   </label>
                   <select
                     id="status"
@@ -202,16 +202,16 @@ const CreateTripPage = () => {
                     onChange={handleChange}
                     className="input"
                   >
-                    <option value="planning">Planning</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
+                    <option value="planning">Đang lên kế hoạch</option>
+                    <option value="upcoming">Sắp diễn ra</option>
+                    <option value="ongoing">Đang diễn ra</option>
+                    <option value="completed">Đã hoàn thành</option>
                   </select>
                 </div>
 
                 <div>
                   <label htmlFor="visibility" className="block text-sm font-medium text-gray-700 mb-2">
-                    Visibility
+                    Quyền xem
                   </label>
                   <select
                     id="visibility"
@@ -220,9 +220,9 @@ const CreateTripPage = () => {
                     onChange={handleChange}
                     className="input"
                   >
-                    <option value="public">Public</option>
-                    <option value="connections">Connections Only</option>
-                    <option value="private">Private</option>
+                    <option value="public">Công khai</option>
+                    <option value="connections">Chỉ người kết nối</option>
+                    <option value="private">Riêng tư</option>
                   </select>
                 </div>
               </div>
@@ -233,13 +233,13 @@ const CreateTripPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <Calendar className="w-5 h-5 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Travel Dates</h2>
+              <h2 className="text-xl font-bold text-gray-900">Thời gian</h2>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date *
+                  Ngày bắt đầu *
                 </label>
                 <input
                   type="date"
@@ -256,7 +256,7 @@ const CreateTripPage = () => {
 
               <div>
                 <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date *
+                  Ngày kết thúc *
                 </label>
                 <input
                   type="date"
@@ -277,12 +277,12 @@ const CreateTripPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <MapPin className="w-5 h-5 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Destinations</h2>
+              <h2 className="text-xl font-bold text-gray-900">Điểm đến</h2>
             </div>
 
             <div className="mb-4">
               <label htmlFor="destination-search" className="block text-sm font-medium text-gray-700 mb-2">
-                Search Destinations
+                Tìm điểm đến
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -292,7 +292,7 @@ const CreateTripPage = () => {
                   value={destinationQuery}
                   onChange={handleDestinationSearch}
                   className="input pl-10"
-                  placeholder="Search for destinations..."
+                  placeholder="Nhập tên điểm đến..."
                 />
               </div>
 
@@ -318,7 +318,7 @@ const CreateTripPage = () => {
             {formData.destinations.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">
-                  Selected Destinations ({formData.destinations.length})
+                  Điểm đến đã chọn ({formData.destinations.length})
                 </p>
                 <div className="space-y-2">
                   {formData.destinations.map((destId) => (
@@ -345,13 +345,13 @@ const CreateTripPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <DollarSign className="w-5 h-5 text-primary-600" />
-              <h2 className="text-xl font-bold text-gray-900">Budget</h2>
+              <h2 className="text-xl font-bold text-gray-900">Ngân sách</h2>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="budget.currency" className="block text-sm font-medium text-gray-700 mb-2">
-                  Currency
+                  Đơn vị tiền tệ
                 </label>
                 <select
                   id="budget.currency"
@@ -370,7 +370,7 @@ const CreateTripPage = () => {
 
               <div>
                 <label htmlFor="budget.estimated" className="block text-sm font-medium text-gray-700 mb-2">
-                  Estimated Budget
+                  Ngân sách dự kiến
                 </label>
                 <input
                   type="number"
@@ -397,10 +397,10 @@ const CreateTripPage = () => {
               {loading ? (
                 <>
                   <LoadingSpinner size="small" />
-                  <span>Creating...</span>
+                  <span>Đang tạo...</span>
                 </>
               ) : (
-                <span>Create Trip</span>
+                <span>Tạo chuyến đi</span>
               )}
             </button>
             <button
@@ -408,7 +408,7 @@ const CreateTripPage = () => {
               onClick={() => navigate('/trips')}
               className="btn btn-secondary"
             >
-              Cancel
+              Hủy
             </button>
           </div>
         </form>

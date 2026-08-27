@@ -83,9 +83,9 @@ const EditProfilePage = () => {
     try {
       const response = await userAPI.uploadPhoto(formData);
       updateUser({ profile: { ...user.profile, profilePhoto: response.data.data.photoUrl } });
-      toast.success('Profile photo updated!');
+      toast.success('Đã cập nhật ảnh đại diện!');
     } catch (error) {
-      toast.error('Failed to upload photo');
+      toast.error('Tải ảnh lên thất bại');
     } finally {
       setUploading(false);
     }
@@ -107,10 +107,10 @@ const EditProfilePage = () => {
       });
 
       updateUser(response.data.data.user);
-      toast.success('Profile updated successfully!');
+      toast.success('Cập nhật hồ sơ thành công!');
       navigate(`/profile/${user.username}`);
     } catch (error) {
-      toast.error('Failed to update profile');
+      toast.error('Cập nhật hồ sơ thất bại');
     } finally {
       setLoading(false);
     }
@@ -120,13 +120,13 @@ const EditProfilePage = () => {
     <div className="container-custom py-8">
       <div className="max-w-2xl mx-auto">
         <div className="card p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Chỉnh sửa hồ sơ</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Photo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Profile Photo
+                Ảnh đại diện
               </label>
               <div className="flex items-center space-x-4">
                 {user?.profile?.profilePhoto ? (
@@ -144,7 +144,7 @@ const EditProfilePage = () => {
                 )}
                 <label className="btn btn-secondary flex items-center space-x-2 cursor-pointer">
                   <Camera className="w-4 h-4" />
-                  <span>{uploading ? 'Uploading...' : 'Change Photo'}</span>
+                  <span>{uploading ? 'Đang tải lên...' : 'Đổi ảnh'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -160,7 +160,7 @@ const EditProfilePage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
+                  Tên
                 </label>
                 <input
                   type="text"
@@ -174,7 +174,7 @@ const EditProfilePage = () => {
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
+                  Họ
                 </label>
                 <input
                   type="text"
@@ -191,7 +191,7 @@ const EditProfilePage = () => {
             {/* Bio */}
             <div>
               <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-                Bio
+                Giới thiệu
               </label>
               <textarea
                 id="bio"
@@ -200,7 +200,7 @@ const EditProfilePage = () => {
                 onChange={handleChange}
                 rows={4}
                 className="input"
-                placeholder="Tell us about yourself..."
+                placeholder="Vài dòng giới thiệu về bạn..."
               />
             </div>
 
@@ -208,7 +208,7 @@ const EditProfilePage = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="location.city" className="block text-sm font-medium text-gray-700 mb-2">
-                  City
+                  Thành phố
                 </label>
                 <input
                   type="text"
@@ -221,7 +221,7 @@ const EditProfilePage = () => {
               </div>
               <div>
                 <label htmlFor="location.country" className="block text-sm font-medium text-gray-700 mb-2">
-                  Country
+                  Quốc gia
                 </label>
                 <input
                   type="text"
@@ -237,7 +237,7 @@ const EditProfilePage = () => {
             {/* Interests */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Interests
+                Sở thích
               </label>
               <div className="flex space-x-2 mb-3">
                 <input
@@ -246,14 +246,14 @@ const EditProfilePage = () => {
                   onChange={(e) => setInterestInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddInterest())}
                   className="input"
-                  placeholder="Add an interest..."
+                  placeholder="Thêm một sở thích..."
                 />
                 <button
                   type="button"
                   onClick={handleAddInterest}
                   className="btn btn-primary"
                 >
-                  Add
+                  Thêm
                 </button>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -285,12 +285,12 @@ const EditProfilePage = () => {
                 {loading ? (
                   <>
                     <LoadingSpinner size="small" />
-                    <span>Saving...</span>
+                    <span>Đang lưu...</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    <span>Save Changes</span>
+                    <span>Lưu thay đổi</span>
                   </>
                 )}
               </button>
@@ -299,7 +299,7 @@ const EditProfilePage = () => {
                 onClick={() => navigate(`/profile/${user.username}`)}
                 className="btn btn-secondary"
               >
-                Cancel
+                Hủy
               </button>
             </div>
           </form>

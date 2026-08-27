@@ -24,7 +24,7 @@ const TripDetailPage = () => {
       setTrip(response.data.data.trip);
     } catch (error) {
       console.error('Error loading trip:', error);
-      toast.error('Failed to load trip');
+      toast.error('Không tải được chuyến đi');
       navigate('/trips');
     } finally {
       setLoading(false);
@@ -32,16 +32,28 @@ const TripDetailPage = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this trip?')) return;
+    if (!window.confirm('Bạn có chắc muốn xóa chuyến đi này?')) return;
 
     try {
       await tripAPI.delete(id);
-      toast.success('Trip deleted successfully');
+      toast.success('Đã xóa chuyến đi');
       navigate('/trips');
     } catch (error) {
       console.error('Error deleting trip:', error);
-      toast.error('Failed to delete trip');
+      toast.error('Xóa chuyến đi thất bại');
     }
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      planning: 'Đang lên kế hoạch',
+      upcoming: 'Sắp diễn ra',
+      ongoing: 'Đang diễn ra',
+      completed: 'Đã hoàn thành',
+      active: 'Đang diễn ra',
+      cancelled: 'Đã hủy',
+    };
+    return labels[status] || status;
   };
 
   const getStatusColor = (status) => {
@@ -84,7 +96,7 @@ const TripDetailPage = () => {
           className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back to Trips</span>
+          <span>Quay lại danh sách</span>
         </Link>
 
         {/* Header */}
@@ -93,7 +105,7 @@ const TripDetailPage = () => {
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{trip.title}</h1>
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(trip.status)}`}>
-                {trip.status.charAt(0).toUpperCase() + trip.status.slice(1)}
+                {getStatusLabel(trip.status)}
               </span>
             </div>
 
@@ -104,14 +116,14 @@ const TripDetailPage = () => {
                   className="btn btn-secondary flex items-center space-x-2"
                 >
                   <Edit className="w-5 h-5" />
-                  <span>Edit</span>
+                  <span>Sửa</span>
                 </Link>
                 <button
                   onClick={handleDelete}
                   className="btn bg-red-50 text-red-600 hover:bg-red-100 flex items-center space-x-2"
                 >
                   <Trash2 className="w-5 h-5" />
-                  <span>Delete</span>
+                  <span>Xóa</span>
                 </button>
               </div>
             )}
@@ -128,25 +140,25 @@ const TripDetailPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <Calendar className="w-5 h-5 text-primary-600" />
-              <h2 className="text-lg font-bold text-gray-900">Travel Dates</h2>
+              <h2 className="text-lg font-bold text-gray-900">Thời gian</h2>
             </div>
             <div className="space-y-2">
               <div>
-                <span className="text-sm text-gray-600">Start:</span>
+                <span className="text-sm text-gray-600">Bắt đầu:</span>
                 <p className="font-medium text-gray-900">
-                  {format(new Date(trip.startDate), 'MMMM d, yyyy')}
+                  {format(new Date(trip.startDate), 'dd/MM/yyyy')}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-gray-600">End:</span>
+                <span className="text-sm text-gray-600">Kết thúc:</span>
                 <p className="font-medium text-gray-900">
-                  {format(new Date(trip.endDate), 'MMMM d, yyyy')}
+                  {format(new Date(trip.endDate), 'dd/MM/yyyy')}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-gray-600">Duration:</span>
+                <span className="text-sm text-gray-600">Thời lượng:</span>
                 <p className="font-medium text-gray-900">
-                  {Math.ceil((new Date(trip.endDate) - new Date(trip.startDate)) / (1000 * 60 * 60 * 24))} days
+                  {Math.ceil((new Date(trip.endDate) - new Date(trip.startDate)) / (1000 * 60 * 60 * 24))} ngày
                 </p>
               </div>
             </div>
@@ -157,11 +169,11 @@ const TripDetailPage = () => {
             <div className="card p-6">
               <div className="flex items-center space-x-2 mb-4">
                 <DollarSign className="w-5 h-5 text-primary-600" />
-                <h2 className="text-lg font-bold text-gray-900">Budget</h2>
+                <h2 className="text-lg font-bold text-gray-900">Ngân sách</h2>
               </div>
               <div className="space-y-2">
                 <div>
-                  <span className="text-sm text-gray-600">Estimated:</span>
+                  <span className="text-sm text-gray-600">Dự kiến:</span>
                   <p className="text-2xl font-bold text-gray-900">
                     {trip.budget.currency} {trip.budget.estimated?.toLocaleString() || '0'}
                   </p>
@@ -176,7 +188,7 @@ const TripDetailPage = () => {
           <div className="card p-6 mb-6">
             <div className="flex items-center space-x-2 mb-4">
               <MapPin className="w-5 h-5 text-primary-600" />
-              <h2 className="text-lg font-bold text-gray-900">Destinations</h2>
+              <h2 className="text-lg font-bold text-gray-900">Điểm đến</h2>
             </div>
             <div className="space-y-2">
               {trip.destinations.map((destId, index) => (
@@ -193,10 +205,10 @@ const TripDetailPage = () => {
           <div className="card p-6">
             <div className="flex items-center space-x-2 mb-4">
               <Users className="w-5 h-5 text-primary-600" />
-              <h2 className="text-lg font-bold text-gray-900">Travelers</h2>
+              <h2 className="text-lg font-bold text-gray-900">Người tham gia</h2>
             </div>
             <p className="text-gray-700">
-              {trip.travelers.length} {trip.travelers.length === 1 ? 'person' : 'people'} traveling
+              {trip.travelers.length} người tham gia chuyến đi
             </p>
           </div>
         )}

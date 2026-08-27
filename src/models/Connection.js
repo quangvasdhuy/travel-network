@@ -43,15 +43,15 @@ export class Connection {
     const errors = [];
 
     if (!data.followerId) {
-      errors.push('Follower ID is required');
+      errors.push('Thiếu ID người theo dõi');
     }
 
     if (!data.followingId) {
-      errors.push('Following ID is required');
+      errors.push('Thiếu ID người được theo dõi');
     }
 
     if (data.followerId === data.followingId) {
-      errors.push('Users cannot follow themselves');
+      errors.push('Không thể tự theo dõi chính mình');
     }
 
     return {

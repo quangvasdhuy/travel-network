@@ -63,11 +63,11 @@ export const AuthProvider = ({ children }) => {
       setUser(newUser);
       setIsAuthenticated(true);
       
-      toast.success('Account created successfully!');
+      toast.success('Tạo tài khoản thành công!');
       return { success: true };
     } catch (error) {
       const errorData = error.response?.data?.error;
-      let message = error.response?.data?.message || 'Registration failed';
+      let message = error.response?.data?.message || 'Đăng ký thất bại';
       
       // Handle validation errors with details
       if (errorData?.details && Array.isArray(errorData.details)) {
@@ -105,12 +105,12 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       
       console.log('[AuthContext] Login successful, user:', loggedInUser.username, 'authenticated:', true);
-      toast.success(`Welcome back, ${loggedInUser.username}!`);
+      toast.success(`Chào mừng trở lại, ${loggedInUser.username}!`);
       return { success: true };
     } catch (error) {
       console.error('[AuthContext] Login failed:', error);
       console.error('[AuthContext] Error response:', error.response?.data);
-      const message = error.response?.data?.message || 'Login failed';
+      const message = error.response?.data?.message || 'Đăng nhập thất bại';
       toast.error(message);
       return { success: false, error: message };
     }
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('refreshToken');
       setUser(null);
       setIsAuthenticated(false);
-      toast.success('Logged out successfully');
+      toast.success('Đã đăng xuất');
     }
   };
 

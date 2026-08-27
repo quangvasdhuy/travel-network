@@ -15,7 +15,7 @@ export const errorHandler = (err, req, res, next) => {
 
   // Default error status and message
   let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
+  let message = err.message || 'Lỗi hệ thống';
 
   // Handle specific error types
   if (err.name === 'ValidationError') {
@@ -23,13 +23,13 @@ export const errorHandler = (err, req, res, next) => {
     message = err.message;
   } else if (err.name === 'UnauthorizedError' || err.name === 'JsonWebTokenError') {
     statusCode = 401;
-    message = 'Unauthorized';
+    message = 'Không có quyền truy cập';
   } else if (err.name === 'DocumentNotFoundError') {
     statusCode = 404;
-    message = 'Resource not found';
+    message = 'Không tìm thấy tài nguyên';
   } else if (err.name === 'DocumentExistsError') {
     statusCode = 409;
-    message = 'Resource already exists';
+    message = 'Tài nguyên đã tồn tại';
   }
 
   // Build error response
@@ -58,7 +58,7 @@ export const notFoundHandler = (req, res) => {
   res.status(404).json({
     success: false,
     error: {
-      message: 'Route not found',
+      message: 'Không tìm thấy đường dẫn',
       statusCode: 404,
       path: req.originalUrl,
     },
